@@ -123,8 +123,6 @@ def visualize_model(model, num_images=6):
 
 
 if __name__ == "__main__":
-    plt.ion()
-
     # Load Data
     # Data augmentation and normalization for training
     # Just normalization for validation
@@ -157,17 +155,10 @@ if __name__ == "__main__":
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-    # Visualize a few images
-    # Get a batch of training data
-    inputs, classes = next(iter(dataloaders['train']))
+    print(device)
 
-    # Make a grid from batch
-    out = torchvision.utils.make_grid(inputs)
-
-    imshow(out, title=[class_names[x] for x in classes])
-
-    # Training the model
-    model_ft = models.resnet18(pretrained=True)
+    # model_ft and model_conv
+    model_ft = models.resnet18()
     num_ftrs = model_ft.fc.in_features
     # Here the size of each output sample is set to 2.
     # Alternatively, it can be generalized to nn.Linear(num_ftrs, len(class_names)).
@@ -175,52 +166,52 @@ if __name__ == "__main__":
 
     model_ft = model_ft.to(device)
 
-    criterion = nn.CrossEntropyLoss()
+    # Loading Model_ft Weights
+    model_ft.load_state_dict(torch.load('model_ft_weights.pth'))
+    model_ft.eval()
 
-    # Observe that all parameters are being optimized
-    optimizer_ft = optim.SGD(model_ft.parameters(), lr=0.001, momentum=0.9)
+    # load model_ft from model file
+    model_ft_full = torch.load('model_ft.pth')
+    model_ft_full = model_ft_full.to(device)
 
-    # Decay LR by a factor of 0.1 every 7 epochs
-    exp_lr_scheduler = lr_scheduler.StepLR(
-        optimizer_ft, step_size=7, gamma=0.1)
+    # predict with model_ft and model_ft_full
+    num_images = 6
+    was_training = model_ft.training
+    images_so_far = 0
+    fig = plt.figure()
 
-    model_ft = train_model(model_ft, criterion, optimizer_ft, exp_lr_scheduler,
-                           num_epochs=25)
+    bool_break = False
+
+    with torch.no_grad():
+        for i, (inputs, labels) in enumerate(dataloaders['val']):
+            inputs = inputs.to(device)
+            labels = labels.to(device)
+
+            outputs = model_ft(inputs)
+            _, preds = torch.max(outputs, 1)
+
+            print(outputs)
+            print(preds)
+
+            outputs_full = model_ft_full(inputs)
+            _, preds_full = torch.max(outputs_full, 1)
+
+            print(outputs_full)
+            print(preds_full)
+
+            for j in range(inputs.size()[0]):
+                images_so_far += 1
+                ax = plt.subplot(num_images//2, 2, images_so_far)
+                ax.axis('off')
+                ax.set_title('predicted: {}'.format(class_names[preds[j]]))
+                imshow(inputs.cpu().data[j])
+
+                if images_so_far == num_images:
+                    model_ft.train(mode=was_training)
+                    bool_break = True
+                    break
+            if bool_break:
+                break
+        model_ft.train(mode=was_training)
     
-    # save model_ft
-    torch.save(model_ft.state_dict(), 'model_ft_weights.pth')
-
-    visualize_model(model_ft)
-
-    # ConvNet as fixed feature extractor
-    model_conv = torchvision.models.resnet18(pretrained=True)
-    for param in model_conv.parameters():
-        param.requires_grad = False
-
-    # Parameters of newly constructed modules have requires_grad=True by default
-    num_ftrs = model_conv.fc.in_features
-    model_conv.fc = nn.Linear(num_ftrs, 2)
-
-    model_conv = model_conv.to(device)
-
-    criterion = nn.CrossEntropyLoss()
-
-    # Observe that only parameters of final layer are being optimized as
-    # opposed to before.
-    optimizer_conv = optim.SGD(
-        model_conv.fc.parameters(), lr=0.001, momentum=0.9)
-
-    # Decay LR by a factor of 0.1 every 7 epochs
-    exp_lr_scheduler = lr_scheduler.StepLR(
-        optimizer_conv, step_size=7, gamma=0.1)
-
-    model_conv = train_model(model_conv, criterion, optimizer_conv,
-                             exp_lr_scheduler, num_epochs=25)
-    
-    # save model_conv
-    torch.save(model_conv.state_dict(), 'model_conv_weights.pth')
-
-    visualize_model(model_conv)
-
-    plt.ioff()
     plt.show()
