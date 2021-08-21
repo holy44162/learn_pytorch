@@ -147,7 +147,7 @@ if __name__ == "__main__":
     image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir, x),
                                               data_transforms[x])
                       for x in ['train', 'val']}
-    dataloaders = {x: torch.utils.data.DataLoader(image_datasets[x], batch_size=4,
+    dataloaders = {x: torch.utils.data.DataLoader(image_datasets[x], batch_size=1,
                                                   shuffle=True, num_workers=4)
                    for x in ['train', 'val']}
     dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'val']}
@@ -184,6 +184,8 @@ if __name__ == "__main__":
 
     with torch.no_grad():
         for i, (inputs, labels) in enumerate(dataloaders['val']):
+            print(inputs.shape)
+            print(labels.shape)
             inputs = inputs.to(device)
             labels = labels.to(device)
 
