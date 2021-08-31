@@ -127,8 +127,6 @@ def visualize_model(model, num_images=6):
                     return
         model.train(mode=was_training)
 
-def list_files(directory, extension):
-    return (f for f in sorted(os.listdir(directory)) if f.endswith('.' + extension))
 
 if __name__ == "__main__":
     # Load Data
@@ -149,7 +147,6 @@ if __name__ == "__main__":
         ]),
     }
 
-    """
     # data_dir = 'data/hymenoptera_data'
     # data_dir = 'data/z75_data' # added by Holy 2108171500
     data_dir = 'e:/dnn_data/z75_data' # added by Holy 2108171500
@@ -291,71 +288,3 @@ if __name__ == "__main__":
     print(outputs_full)
     print(preds_full)
     # end of addition 2108300810
-    """
-
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-
-    # load model_ft from model file
-    model_ft_full = torch.load('model_ft.pth')
-    model_ft_full = model_ft_full.to(device)
-
-    strDatasetPrefix = 'd:/data_seq/gongqiWinding/Z75_DF-4105H-BD/210820/shrinkVideo/smallDatasets/test'
-    path = str(Path(strDatasetPrefix) / 'imgs')
-    print(path)
-
-    strYTest = str(Path(strDatasetPrefix) / 'y_Test.txt')
-    print(strYTest)
-
-    with open(strYTest) as fInYTest:
-        vecBMessYTest = fInYTest.readlines()
-        vecBMessYTest = [bool(int(i)) for i in vecBMessYTest]
-        # print(vecBMessYTest)
-
-    vecBMess = []
-
-    # Setting the points for cropped image
-    left = 25
-    top = 276
-    right = 25+681-1
-    bottom = 276+201-1
-
-    str_imgs_list = list_files(path, "jpg")
-    for str_img_name in str_imgs_list:
-        str_img_name = str(Path(path) / str_img_name)
-        # print(str_img_name)
-
-        PIL_image = PIL.Image.open(str_img_name)
-        PIL_image = PIL_image.crop((left, top, right, bottom))
-        with torch.no_grad():
-            PIL_image = data_transforms['val'](PIL_image)
-            PIL_image = PIL_image.unsqueeze(0)            
-            PIL_image = PIL_image.to(device)
-            outputs = model_ft_full(PIL_image)
-            _, preds = torch.max(outputs, 1)
-            preds = 1 - int(preds)
-            vecBMess.append(bool(preds))
-    
-    # print(vecBMess)
-    # print(len(vecBMess))
-
-    vecBMessYTest_flip = [ not z for z in vecBMessYTest]
-    vecBMess_flip = [ not z for z in vecBMess]
-
-    vecBResult = [ x and y for (x,y) in zip(vecBMessYTest, vecBMess)]    
-    tp = sum(vecBResult)
-    print(tp)
-
-    vecBResult = [ x and y for (x,y) in zip(vecBMessYTest_flip, vecBMess)]
-    fp = sum(vecBResult)
-    print(fp)
-
-    vecBResult = [ x and y for (x,y) in zip(vecBMessYTest, vecBMess_flip)]
-    fn1 = sum(vecBResult)
-    print(fn1)
-
-    prec = float(tp) / float(tp + fp)
-    rec = float(tp) / float(tp + fn1)
-    dF1 = 2 * prec * rec / (prec + rec)
-    print(prec)
-    print(rec)
-    print(dF1)
