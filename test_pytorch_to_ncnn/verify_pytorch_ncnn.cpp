@@ -2,6 +2,8 @@
 #include <vector>
 #include "net.h"
 
+#include <iostream> // tested by Holy 2109010810
+
 using namespace std;
 
 vector<float> get_output(const ncnn::Mat &m)
@@ -19,6 +21,7 @@ vector<float> get_output(const ncnn::Mat &m)
             ptr += m.w;
         }
     }
+    std::cout << "res[534]: " << res[534] << std::endl; // tested by Holy 2109010810
     return res;
 }
 
@@ -39,9 +42,19 @@ int main()
     ex.input("x", in);
     ncnn::Mat feat;
     ex.extract("y", feat);
+    // tested by Holy 2109010810
+    cout << "y.c: " << feat.c << endl;
+    cout << "y.w: " << feat.w << endl;
+    cout << "y.h: " << feat.h << endl;
+    // end of test 2109010810
     vector<float> res = get_output(feat);
     vector<float>::iterator max_id = max_element(res.begin(), res.end());
     printf("predicted class: %d, predicted value: %f", max_id - res.begin(), res[max_id - res.begin()]);
+    // tested by Holy 2109010810
+    printf("\r\n max_id: %d, res.begin: %d\r\n", max_id, res.begin());
+    printf("\r\n max_id - res.begin: %d\r\n", max_id-res.begin());
+    cout << "size of res: " << res.size() << endl;
+    // end of test 2109010810
     // net.clear();
     return 0;
 }

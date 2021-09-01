@@ -18,6 +18,8 @@ from pathlib import Path
 import PIL
 # end of addition 2108300810
 
+import cv2 # added by Holy 2109010810
+
 
 def imshow(inp, title=None):
     """Imshow for Tensor."""
@@ -131,6 +133,7 @@ def list_files(directory, extension):
     return (f for f in sorted(os.listdir(directory)) if f.endswith('.' + extension))
 
 if __name__ == "__main__":
+    """
     # Load Data
     # Data augmentation and normalization for training
     # Just normalization for validation
@@ -148,8 +151,7 @@ if __name__ == "__main__":
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ]),
     }
-
-    """
+    
     # data_dir = 'data/hymenoptera_data'
     # data_dir = 'data/z75_data' # added by Holy 2108171500
     data_dir = 'e:/dnn_data/z75_data' # added by Holy 2108171500
@@ -297,7 +299,7 @@ if __name__ == "__main__":
 
     # load model_ft from model file
     model_ft_full = torch.load('model_ft.pth')
-    model_ft_full = model_ft_full.to(device)
+    # model_ft_full = model_ft_full.to(device) # hided by Holy 2109010810
 
     strDatasetPrefix = 'd:/data_seq/gongqiWinding/Z75_DF-4105H-BD/210820/shrinkVideo/smallDatasets/test'
     path = str(Path(strDatasetPrefix) / 'imgs')
@@ -319,21 +321,58 @@ if __name__ == "__main__":
     right = 25+681-1
     bottom = 276+201-1
 
+    # added by Holy 2109010810
+    num = 0
+    # specify ImageNet mean and standard deviation
+    imagenet_mean = [0.485, 0.456, 0.406]
+    imagenet_std = [0.229, 0.224, 0.225]
+    # end of addition 2109010810
+
     str_imgs_list = list_files(path, "jpg")
     for str_img_name in str_imgs_list:
         str_img_name = str(Path(path) / str_img_name)
         # print(str_img_name)
 
-        PIL_image = PIL.Image.open(str_img_name)
-        PIL_image = PIL_image.crop((left, top, right, bottom))
-        with torch.no_grad():
-            PIL_image = data_transforms['val'](PIL_image)
-            PIL_image = PIL_image.unsqueeze(0)            
-            PIL_image = PIL_image.to(device)
-            outputs = model_ft_full(PIL_image)
-            _, preds = torch.max(outputs, 1)
-            preds = 1 - int(preds)
-            vecBMess.append(bool(preds))
+        # hided by Holy 2109010810
+        # PIL_image = PIL.Image.open(str_img_name)
+        # PIL_image = PIL_image.crop((left, top, right, bottom))
+        # with torch.no_grad():
+        #     PIL_image = data_transforms['val'](PIL_image)
+        #     PIL_image = PIL_image.unsqueeze(0)            
+        #     PIL_image = PIL_image.to(device)
+        #     outputs = model_ft_full(PIL_image)
+        #     _, preds = torch.max(outputs, 1)
+        #     preds = 1 - int(preds)
+        #     vecBMess.append(bool(preds))
+        # end of hide 2109010810
+
+        # added by Holy 2109010810
+        img = cv2.imread(str_img_name)
+        img = img[276:276+201, 25:25+681]
+        img = cv2.resize(img, (224, 224))
+        img = img.astype("float32") / 255.0
+        img -= imagenet_mean
+        img /= imagenet_std
+        img = np.transpose(img, (2, 0, 1)).astype(np.float32)
+        img = torch.from_numpy(img)        
+        img = img.unsqueeze(0)
+        output = model_ft_full.forward(img)
+        val, cls = torch.max(output.data, 1)
+        print("[pytorch]--->predicted class:", cls.item())
+        print("[pytorch]--->predicted value:", val.item())
+
+        values, indices = output.data.topk(2, dim=1, largest=True, sorted=True)
+        print("[pytorch]--->predicted topk class:", indices)
+        print("[pytorch]--->predicted topk value:", values)
+
+        preds = 1 - int(cls.item())
+        vecBMess.append(bool(preds))
+
+        # if num == 10:
+        #     break
+
+        num += 1
+        # end of addition2109010810
     
     # print(vecBMess)
     # print(len(vecBMess))
@@ -343,19 +382,19 @@ if __name__ == "__main__":
 
     vecBResult = [ x and y for (x,y) in zip(vecBMessYTest, vecBMess)]    
     tp = sum(vecBResult)
-    print(tp)
+    print(f'tp: {tp}')
 
     vecBResult = [ x and y for (x,y) in zip(vecBMessYTest_flip, vecBMess)]
     fp = sum(vecBResult)
-    print(fp)
+    print(f'fp: {fp}')
 
     vecBResult = [ x and y for (x,y) in zip(vecBMessYTest, vecBMess_flip)]
     fn1 = sum(vecBResult)
-    print(fn1)
+    print(f'fn: {fn1}')
 
     prec = float(tp) / float(tp + fp)
     rec = float(tp) / float(tp + fn1)
     dF1 = 2 * prec * rec / (prec + rec)
-    print(prec)
-    print(rec)
-    print(dF1)
+    print(f'prec: {prec}')
+    print(f'rec: {rec}')
+    print(f'f1: {dF1}')

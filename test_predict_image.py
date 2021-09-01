@@ -18,6 +18,8 @@ from pathlib import Path
 import PIL
 # end of addition 2108300810
 
+import cv2 # added by Holy 2109010810
+
 
 def imshow(inp, title=None):
     """Imshow for Tensor."""
@@ -129,6 +131,7 @@ def visualize_model(model, num_images=6):
 
 
 if __name__ == "__main__":
+    """
     # Load Data
     # Data augmentation and normalization for training
     # Just normalization for validation
@@ -224,7 +227,7 @@ if __name__ == "__main__":
         model_ft.train(mode=was_training)
     
     plt.show()
-
+    
     # added by Holy 2108300810
     image_path = str(Path(r'e:\dnn_data\z75_data\val\mess') / 'img00001.jpg')
     mess1 = read_image(image_path)
@@ -288,3 +291,23 @@ if __name__ == "__main__":
     print(outputs_full)
     print(preds_full)
     # end of addition 2108300810
+    """
+
+    # added by Holy 2109010810
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")    
+
+    img_path = 'd:/data_seq/gongqiWinding/Z75_DF-4105H-BD/210820/shrinkVideo/smallDatasets/test/imgs/img00001.jpg'
+    img = cv2.imread(img_path)
+    img = cv2.resize(img, (224, 224))
+    img = np.transpose(img, (2, 0, 1)).astype(np.float32)
+    img = torch.from_numpy(img)
+    img = img.unsqueeze(0)
+
+    # load model_ft from model file
+    model_ft_full = torch.load('model_ft.pth')
+
+    output = model_ft_full.forward(img)
+    val, cls = torch.max(output.data, 1)
+    print("[pytorch]--->predicted class:", cls.item())
+    print("[pytorch]--->predicted value:", val.item())
+    # end of addition 2109010810
