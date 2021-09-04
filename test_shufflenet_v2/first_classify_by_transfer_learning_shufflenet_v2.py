@@ -13,7 +13,42 @@ import os
 import copy
 
 import shufflenet_v2 # added by Holy 2109031500
+import shutil # added by Holy 2109041002
 
+# added by Holy 2109041002
+def save_ckp(state, is_best, checkpoint_path, best_model_path):
+    """
+    state: checkpoint we want to save
+    is_best: is this the best checkpoint; min validation loss
+    checkpoint_path: path to save checkpoint
+    best_model_path: path to save best model
+    """
+    f_path = checkpoint_path
+    # save checkpoint data to the path given, checkpoint_path
+    torch.save(state, f_path)
+    # if it is a best model, min validation loss
+    if is_best:
+        best_fpath = best_model_path
+        # copy that checkpoint file to best path given, best_model_path
+        shutil.copyfile(f_path, best_fpath)
+
+def load_ckp(checkpoint_fpath, model, optimizer):
+    """
+    checkpoint_path: path to save checkpoint
+    model: model that we want to load checkpoint parameters into       
+    optimizer: optimizer we defined in previous training
+    """
+    # load check point
+    checkpoint = torch.load(checkpoint_fpath)
+    # initialize state_dict from checkpoint to model
+    model.load_state_dict(checkpoint['state_dict'])
+    # initialize optimizer from checkpoint to optimizer
+    optimizer.load_state_dict(checkpoint['optimizer'])
+    # initialize valid_loss_min from checkpoint to valid_loss_min
+    valid_loss_min = checkpoint['valid_loss_min']
+    # return model, optimizer, epoch value, min validation loss 
+    return model, optimizer, checkpoint['epoch'], valid_loss_min
+# end of addition 2109041002
 
 def imshow(inp, title=None):
     """Imshow for Tensor."""
@@ -28,14 +63,24 @@ def imshow(inp, title=None):
     plt.pause(0.001)  # pause a bit so that plots are updated
 
 
-def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
+def train_model(model, criterion, optimizer, scheduler, start_epochs, n_epochs, valid_loss_min_input=None, checkpoint_path=None, best_model_path=None):
     since = time.time()
+
+    # added by Holy 2109041500
+    # initialize tracker for minimum validation loss
+    valid_loss_min = valid_loss_min_input
+    # end of addition 2109041500
 
     best_model_wts = copy.deepcopy(model.state_dict())
     best_acc = 0.0
 
-    for epoch in range(num_epochs):
-        print('Epoch {}/{}'.format(epoch, num_epochs - 1))
+    # for epoch in range(num_epochs):
+    for epoch in range(start_epochs, n_epochs+1): # added by Holy 2109041500
+        # initialize variables to monitor training and validation loss
+        valid_loss = 0.0 # added by Holy 2109041500
+
+        # print('Epoch {}/{}'.format(epoch, num_epochs - 1))
+        print('Epoch {}/{}'.format(epoch, n_epochs)) # added by Holy 2109041500
         print('-' * 10)
 
         # Each epoch has a training and validation phase
@@ -84,8 +129,33 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
             if phase == 'val' and epoch_acc > best_acc:
                 best_acc = epoch_acc
                 best_model_wts = copy.deepcopy(model.state_dict())
+            
+            # added by Holy 2109041500
+            if phase == 'val':
+                valid_loss = epoch_loss
+            # end of addition 2109041500
 
         print()
+
+        # added by Holy 2109041500
+        # create checkpoint variable and add important data
+        checkpoint = {
+            'epoch': epoch + 1,
+            'valid_loss_min': valid_loss,
+            'state_dict': model.state_dict(),
+            'optimizer': optimizer.state_dict(),
+        }
+        
+        # save checkpoint
+        save_ckp(checkpoint, False, checkpoint_path, best_model_path)
+        
+        ## TODO: save the model if validation loss has decreased
+        if valid_loss <= valid_loss_min:
+            print('Validation loss decreased ({:.6f} --> {:.6f}).  Saving model ...'.format(valid_loss_min,valid_loss))
+            # save checkpoint as best model
+            save_ckp(checkpoint, True, checkpoint_path, best_model_path)
+            valid_loss_min = valid_loss
+        # end of addition 2109041500
 
     time_elapsed = time.time() - since
     print('Training complete in {:.0f}m {:.0f}s'.format(
@@ -130,20 +200,39 @@ if __name__ == "__main__":
     # Load Data
     # Data augmentation and normalization for training
     # Just normalization for validation
+
+    # hided by Holy 2109041002
+    # data_transforms = {
+    #     'train': transforms.Compose([
+    #         transforms.RandomResizedCrop(224),
+    #         transforms.RandomHorizontalFlip(),
+    #         transforms.ToTensor(),
+    #         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+    #     ]),
+    #     'val': transforms.Compose([
+    #         transforms.Resize(256),
+    #         transforms.CenterCrop(224),
+    #         transforms.ToTensor(),
+    #         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+    #     ]),
+    # }
+    # end of hide 2109041002
+
+    # added by Holy 2109041002
     data_transforms = {
         'train': transforms.Compose([
-            transforms.RandomResizedCrop(224),
+            transforms.Resize(224),
             transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ]),
         'val': transforms.Compose([
-            transforms.Resize(256),
-            transforms.CenterCrop(224),
+            transforms.Resize(224),
             transforms.ToTensor(),
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ]),
     }
+    # end of addition 2109041002
 
     # data_dir = 'data/hymenoptera_data'
     # data_dir = 'data/z75_data' # added by Holy 2108171500
@@ -202,14 +291,52 @@ if __name__ == "__main__":
 
     # model_ft = train_model(model_ft, criterion, optimizer_ft, exp_lr_scheduler,
     #                        num_epochs=25)
-    model_ft = train_model(model_ft, criterion, optimizer_ft, exp_lr_scheduler,
-                           num_epochs=2) # added by Holy 2109030810
+    # model_ft = train_model(model_ft, criterion, optimizer_ft, exp_lr_scheduler,
+    #                        num_epochs=2) # added by Holy 2109030810
+    
+    # added by Holy 2109041500
+    start_epochs = 1
+    end_epochs = start_epochs + 15
+    checkpoint_path = './checkpoint/current_checkpoint.pt'
+    best_model_path = './best_model/best_model.pt'
+    resume_training = False
+    if resume_training:
+        # load the saved checkpoint
+        model_ft, optimizer_ft, start_epochs, valid_loss_min = load_ckp(checkpoint_path, model_ft, optimizer_ft)
+        end_epochs = start_epochs + 4
+        print("model = ", model_ft)
+        print("optimizer = ", optimizer_ft)
+        print("start_epoch = ", start_epochs)
+        print("valid_loss_min = ", valid_loss_min)
+        print("valid_loss_min = {:.6f}".format(valid_loss_min))
+
+        model_ft = train_model(model_ft, criterion, optimizer_ft, exp_lr_scheduler,
+                           start_epochs, end_epochs, valid_loss_min, checkpoint_path, best_model_path)
+    else:
+        model_ft = train_model(model_ft, criterion, optimizer_ft, exp_lr_scheduler,
+                           start_epochs, end_epochs, np.Inf, checkpoint_path, best_model_path)
+    # end of addition 2109041500
     
     # save model_ft
     torch.save(model_ft.state_dict(), 'model_ft_weights_shufflenet_v2.pth')
     # torch.save(model_ft.state_dict(), 'model_ft_weights_shufflenet_v2_x0_5.pth') # added by Holy 2109030810
 
     visualize_model(model_ft)
+
+    # added by Holy 2109041500
+    model_ft.eval()
+    test_acc = 0.0
+    for samples, labels in dataloaders['val']:
+        with torch.no_grad():
+            samples, labels = samples.to(device), labels.to(device)
+            output = model_ft(samples)
+            # calculate accuracy
+            pred = torch.argmax(output, dim=1)
+            correct = pred.eq(labels)
+            test_acc += torch.mean(correct.float())
+    print('Accuracy of the network on {} test images: {}%'.format(len(image_datasets['val']), round(test_acc.item()*100.0/len(image_datasets['val']), 2)))
+
+    # end of addition 2109041500
 
     """
     # ConvNet as fixed feature extractor
