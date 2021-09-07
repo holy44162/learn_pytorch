@@ -221,13 +221,13 @@ if __name__ == "__main__":
     # added by Holy 2109041002
     data_transforms = {
         'train': transforms.Compose([
-            transforms.Resize(224),
-            transforms.RandomHorizontalFlip(),
+            transforms.Resize([224, 224]),
+            # transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ]),
         'val': transforms.Compose([
-            transforms.Resize(224),
+            transforms.Resize([224, 224]),
             transforms.ToTensor(),
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ]),
@@ -296,14 +296,32 @@ if __name__ == "__main__":
     
     # added by Holy 2109041500
     start_epochs = 1
-    end_epochs = start_epochs + 15
+    end_epochs = start_epochs + 5
     checkpoint_path = './checkpoint/current_checkpoint.pt'
     best_model_path = './best_model/best_model.pt'
-    resume_training = False
+    resume_training = True
     if resume_training:
+        # added by Holy 2109060810
+        model_ft = torch.hub.load('pytorch/vision:v0.10.0', 'shufflenet_v2_x1_0', pretrained=False)
+        
+        num_ftrs = model_ft.fc.in_features
+        model_ft.fc = nn.Linear(num_ftrs, 2)
+        
+        model_ft = model_ft.to(device)
+
+        criterion = nn.CrossEntropyLoss()
+
+        # Observe that all parameters are being optimized
+        optimizer_ft = optim.SGD(model_ft.parameters(), lr=0.001, momentum=0.9)
+
+        # Decay LR by a factor of 0.1 every 7 epochs
+        exp_lr_scheduler = lr_scheduler.StepLR(
+            optimizer_ft, step_size=7, gamma=0.1)
+        # end of addition 2109060810
+
         # load the saved checkpoint
         model_ft, optimizer_ft, start_epochs, valid_loss_min = load_ckp(checkpoint_path, model_ft, optimizer_ft)
-        end_epochs = start_epochs + 4
+        end_epochs = start_epochs + 5
         print("model = ", model_ft)
         print("optimizer = ", optimizer_ft)
         print("start_epoch = ", start_epochs)
@@ -325,17 +343,24 @@ if __name__ == "__main__":
 
     # added by Holy 2109041500
     model_ft.eval()
+
+    # Saving Model_ft with Shapes
+    torch.save(model_ft, 'model_ft_shufflenet_v2.pth')
+
     test_acc = 0.0
     for samples, labels in dataloaders['val']:
         with torch.no_grad():
             samples, labels = samples.to(device), labels.to(device)
             output = model_ft(samples)
             # calculate accuracy
-            pred = torch.argmax(output, dim=1)
-            correct = pred.eq(labels)
-            test_acc += torch.mean(correct.float())
-    print('Accuracy of the network on {} test images: {}%'.format(len(image_datasets['val']), round(test_acc.item()*100.0/len(image_datasets['val']), 2)))
-
+            # pred = torch.argmax(output, dim=1)
+            _, preds = torch.max(output, 1) # added by Holy 2109060810
+            # correct = pred.eq(labels)
+            test_acc += torch.sum(preds == labels.data) # added by Holy 2109060810
+            # test_acc += torch.mean(correct.float())
+    # print('Accuracy of the network on {} test images: {}%'.format(len(image_datasets['val']), round(test_acc.item()*100.0/len(image_datasets['val']), 2)))
+    print('Accuracy of the network on {} test images: {}%'.format(len(image_datasets['val']),
+                                                                  test_acc.double()*100.0/len(image_datasets['val']))) # added by Holy 2109060810
     # end of addition 2109041500
 
     """

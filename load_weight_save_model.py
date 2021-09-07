@@ -27,9 +27,13 @@ if __name__ == "__main__":
     # Saving Model_ft with Shapes
     torch.save(model_ft, 'model_ft.pth')
 
+    # hided by Holy 2109061500
+    """
     # Loading Model_conv Weights
     model_ft.load_state_dict(torch.load('model_conv_weights.pth'))
     # model_ft.eval()
 
     # Saving Model_conv with Shapes
     torch.save(model_ft, 'model_conv.pth')
+    """
+    # end of hide 2109061500

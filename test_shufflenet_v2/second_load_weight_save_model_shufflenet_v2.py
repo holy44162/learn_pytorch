@@ -18,7 +18,8 @@ import shufflenet_v2 # added by Holy 2109031500
 if __name__ == "__main__":
     # hided by Holy 2109031500
     # model_ft = models.resnet18()
-    model_ft = torch.hub.load('pytorch/vision:v0.10.0', 'shufflenet_v2_x1_0', pretrained=True) # added by Holy 2109021500
+    # model_ft = torch.hub.load('pytorch/vision:v0.10.0', 'shufflenet_v2_x1_0', pretrained=True) # added by Holy 2109021500
+    model_ft = torch.hub.load('pytorch/vision:v0.10.0', 'shufflenet_v2_x1_0', pretrained=False) # added by Holy 2109060810
     # model_ft = torch.hub.load('pytorch/vision:v0.9.1', 'shufflenet_v2_x0_5', pretrained=True) # added by Holy 2109030810
     num_ftrs = model_ft.fc.in_features
     # Here the size of each output sample is set to 2.

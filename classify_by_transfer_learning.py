@@ -184,14 +184,18 @@ if __name__ == "__main__":
     exp_lr_scheduler = lr_scheduler.StepLR(
         optimizer_ft, step_size=7, gamma=0.1)
 
+    # model_ft = train_model(model_ft, criterion, optimizer_ft, exp_lr_scheduler,
+    #                        num_epochs=25)
     model_ft = train_model(model_ft, criterion, optimizer_ft, exp_lr_scheduler,
-                           num_epochs=25)
+                           num_epochs=5) # added by Holy 2109061500
     
     # save model_ft
     torch.save(model_ft.state_dict(), 'model_ft_weights.pth')
 
     visualize_model(model_ft)
 
+    # hided by Holy 2109061500
+    """
     # ConvNet as fixed feature extractor
     model_conv = torchvision.models.resnet18(pretrained=True)
     for param in model_conv.parameters():
@@ -221,6 +225,8 @@ if __name__ == "__main__":
     torch.save(model_conv.state_dict(), 'model_conv_weights.pth')
 
     visualize_model(model_conv)
+    """
+    # end of hide 2109061500
 
     plt.ioff()
     plt.show()

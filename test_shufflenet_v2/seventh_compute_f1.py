@@ -348,16 +348,26 @@ if __name__ == "__main__":
 
         # added by Holy 2109010810
         img = cv2.imread(str_img_name)
-        img = img[276:276+201, 25:25+681]
+        # img = img[276:276+201, 25:25+681] # hided by Holy 2109071500
         img = cv2.resize(img, (224, 224))
+
+        # tested by Holy 2109060810
+        # cv2.imshow('test', img)
+        # cv2.waitKey(0)
+        # break
+        # end of test 2109060810
+
         img = img.astype("float32") / 255.0
         img -= imagenet_mean
         img /= imagenet_std
         img = np.transpose(img, (2, 0, 1)).astype(np.float32)
         img = torch.from_numpy(img)        
         img = img.unsqueeze(0)
+        # img = img.to(device) # added by Holy 2109061500
         output = model_ft_full.forward(img)
+        # output = model_ft_full(img) # added by Holy 2109060810
         val, cls = torch.max(output.data, 1)
+        # val, cls = torch.max(output, 1) # added by Holy 2109060810
         print("[pytorch]--->predicted class:", cls.item())
         print("[pytorch]--->predicted value:", val.item())
 
