@@ -301,7 +301,7 @@ if __name__ == "__main__":
     model_ft_full = torch.load('model_ft_shufflenet_v2.pth')
     # model_ft_full = model_ft_full.to(device) # hided by Holy 2109010810
 
-    strDatasetPrefix = 'd:/data_seq/gongqiWinding/Z75_DF-4105H-BD/210820/shrinkVideo/smallDatasets/test'
+    strDatasetPrefix = 'd:/data_seq/gongqiWinding/Z75_DF-4105H-BD/210820/shrinkVideo/bigDatasets/testValidateCV'
     path = str(Path(strDatasetPrefix) / 'imgs')
     print(path)
 
@@ -363,7 +363,7 @@ if __name__ == "__main__":
         img = np.transpose(img, (2, 0, 1)).astype(np.float32)
         img = torch.from_numpy(img)        
         img = img.unsqueeze(0)
-        # img = img.to(device) # added by Holy 2109061500
+        img = img.to(device) # added by Holy 2109080810
         output = model_ft_full.forward(img)
         # output = model_ft_full(img) # added by Holy 2109060810
         val, cls = torch.max(output.data, 1)

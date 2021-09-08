@@ -15,6 +15,8 @@ import copy
 import shufflenet_v2 # added by Holy 2109031500
 import shutil # added by Holy 2109041002
 
+from tqdm import tqdm # added by Holy 2109081500
+
 # added by Holy 2109041002
 def save_ckp(state, is_best, checkpoint_path, best_model_path):
     """
@@ -75,7 +77,7 @@ def train_model(model, criterion, optimizer, scheduler, start_epochs, n_epochs, 
     best_acc = 0.0
 
     # for epoch in range(num_epochs):
-    for epoch in range(start_epochs, n_epochs+1): # added by Holy 2109041500
+    for epoch in range(start_epochs, n_epochs+1): # added by Holy 2109041500        
         # initialize variables to monitor training and validation loss
         valid_loss = 0.0 # added by Holy 2109041500
 
@@ -85,55 +87,65 @@ def train_model(model, criterion, optimizer, scheduler, start_epochs, n_epochs, 
 
         # Each epoch has a training and validation phase
         for phase in ['train', 'val']:
-            if phase == 'train':
-                model.train()  # Set model to training mode
-            else:
-                model.eval()   # Set model to evaluate mode
+            with tqdm(dataloaders[phase], unit="batch") as tepoch: # added by Holy 2109081500
+                if phase == 'train':
+                    model.train()  # Set model to training mode
+                else:
+                    model.eval()   # Set model to evaluate mode
 
-            running_loss = 0.0
-            running_corrects = 0
+                running_loss = 0.0
+                running_corrects = 0
 
-            # Iterate over data.
-            for inputs, labels in dataloaders[phase]:
-                inputs = inputs.to(device)
-                labels = labels.to(device)
+                # Iterate over data.
+                # for inputs, labels in dataloaders[phase]:
+                for inputs, labels in tepoch: # added by Holy 2109081500
+                    tepoch.set_description(f"Epoch {epoch}") # added by Holy 2109081500
 
-                # zero the parameter gradients
-                optimizer.zero_grad()
+                    inputs = inputs.to(device)
+                    labels = labels.to(device)
 
-                # forward
-                # track history if only in train
-                with torch.set_grad_enabled(phase == 'train'):
-                    outputs = model(inputs)
-                    _, preds = torch.max(outputs, 1)
-                    loss = criterion(outputs, labels)
+                    # zero the parameter gradients
+                    optimizer.zero_grad()
 
-                    # backward + optimize only if in training phase
-                    if phase == 'train':
-                        loss.backward()
-                        optimizer.step()
+                    # forward
+                    # track history if only in train
+                    with torch.set_grad_enabled(phase == 'train'):
+                        outputs = model(inputs)
+                        _, preds = torch.max(outputs, 1)
+                        loss = criterion(outputs, labels)
 
-                # statistics
-                running_loss += loss.item() * inputs.size(0)
-                running_corrects += torch.sum(preds == labels.data)
-            if phase == 'train':
-                scheduler.step()
+                        # backward + optimize only if in training phase
+                        if phase == 'train':
+                            loss.backward()
+                            optimizer.step()
 
-            epoch_loss = running_loss / dataset_sizes[phase]
-            epoch_acc = running_corrects.double() / dataset_sizes[phase]
+                    # statistics
+                    running_loss += loss.item() * inputs.size(0)
+                    running_corrects += torch.sum(preds == labels.data)
 
-            print('{} Loss: {:.4f} Acc: {:.4f}'.format(
-                phase, epoch_loss, epoch_acc))
+                    # added by Holy 2109081500
+                    # correct = (preds == labels.data).sum().item()
+                    accuracy = torch.mean((preds == labels.data).float()).item()
+                    tepoch.set_postfix(loss=loss.item(), accuracy=100. * accuracy)
+                    # added by Holy 2109081500
+                if phase == 'train':
+                    scheduler.step()
 
-            # deep copy the model
-            if phase == 'val' and epoch_acc > best_acc:
-                best_acc = epoch_acc
-                best_model_wts = copy.deepcopy(model.state_dict())
-            
-            # added by Holy 2109041500
-            if phase == 'val':
-                valid_loss = epoch_loss
-            # end of addition 2109041500
+                epoch_loss = running_loss / dataset_sizes[phase]
+                epoch_acc = running_corrects.double() / dataset_sizes[phase]
+
+                print('{} Loss: {:.4f} Acc: {:.4f}'.format(
+                    phase, epoch_loss, epoch_acc))
+
+                # deep copy the model
+                if phase == 'val' and epoch_acc > best_acc:
+                    best_acc = epoch_acc
+                    best_model_wts = copy.deepcopy(model.state_dict())
+                
+                # added by Holy 2109041500
+                if phase == 'val':
+                    valid_loss = epoch_loss
+                # end of addition 2109041500
 
         print()
 
@@ -218,6 +230,21 @@ if __name__ == "__main__":
     # }
     # end of hide 2109041002
 
+    # added by Holy 2109080810
+    INIT_LR = 1e-3
+    # BATCH_SIZE = 2**9 # 1m 37s 0.549111
+    # BATCH_SIZE = 2**8 # 1m 9s 0.512161
+    # BATCH_SIZE = 2**7 # 1m 6s 0.507951
+    BATCH_SIZE = 2**6 # 1m 5s 0.699252 Best val Acc: 0.867166
+    # BATCH_SIZE = 2**5 # 1m 5s 0.667446
+    # BATCH_SIZE = 2**4 # 1m 8s 0.744153
+    # BATCH_SIZE = 2**3 # 1m 34s 0.783910
+    # BATCH_SIZE = 2**2 # 2m 19s 0.967727
+    # BATCH_SIZE = 2**1 # 3m 54s 0.964920
+    # BATCH_SIZE = 2**0 # 6m 56s 0.757717
+    EPOCHS = 5
+    # end of addition 2109080810
+
     # added by Holy 2109041002
     data_transforms = {
         'train': transforms.Compose([
@@ -240,7 +267,7 @@ if __name__ == "__main__":
     image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir, x),
                                               data_transforms[x])
                       for x in ['train', 'val']}
-    dataloaders = {x: torch.utils.data.DataLoader(image_datasets[x], batch_size=4,
+    dataloaders = {x: torch.utils.data.DataLoader(image_datasets[x], batch_size=BATCH_SIZE,
                                                   shuffle=True, num_workers=4)
                    for x in ['train', 'val']}
     dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'val']}
@@ -283,7 +310,7 @@ if __name__ == "__main__":
     criterion = nn.CrossEntropyLoss()
 
     # Observe that all parameters are being optimized
-    optimizer_ft = optim.SGD(model_ft.parameters(), lr=0.001, momentum=0.9)
+    optimizer_ft = optim.SGD(model_ft.parameters(), lr=INIT_LR, momentum=0.9)
 
     # Decay LR by a factor of 0.1 every 7 epochs
     exp_lr_scheduler = lr_scheduler.StepLR(
@@ -296,7 +323,7 @@ if __name__ == "__main__":
     
     # added by Holy 2109041500
     start_epochs = 1
-    end_epochs = start_epochs + 5
+    end_epochs = start_epochs + EPOCHS
     checkpoint_path = './checkpoint/current_checkpoint.pt'
     best_model_path = './best_model/best_model.pt'
     resume_training = True
@@ -321,7 +348,7 @@ if __name__ == "__main__":
 
         # load the saved checkpoint
         model_ft, optimizer_ft, start_epochs, valid_loss_min = load_ckp(checkpoint_path, model_ft, optimizer_ft)
-        end_epochs = start_epochs + 5
+        end_epochs = start_epochs + EPOCHS
         print("model = ", model_ft)
         print("optimizer = ", optimizer_ft)
         print("start_epoch = ", start_epochs)
@@ -347,20 +374,22 @@ if __name__ == "__main__":
     # Saving Model_ft with Shapes
     torch.save(model_ft, 'model_ft_shufflenet_v2.pth')
 
-    test_acc = 0.0
-    for samples, labels in dataloaders['val']:
-        with torch.no_grad():
-            samples, labels = samples.to(device), labels.to(device)
-            output = model_ft(samples)
-            # calculate accuracy
-            # pred = torch.argmax(output, dim=1)
-            _, preds = torch.max(output, 1) # added by Holy 2109060810
-            # correct = pred.eq(labels)
-            test_acc += torch.sum(preds == labels.data) # added by Holy 2109060810
-            # test_acc += torch.mean(correct.float())
-    # print('Accuracy of the network on {} test images: {}%'.format(len(image_datasets['val']), round(test_acc.item()*100.0/len(image_datasets['val']), 2)))
-    print('Accuracy of the network on {} test images: {}%'.format(len(image_datasets['val']),
-                                                                  test_acc.double()*100.0/len(image_datasets['val']))) # added by Holy 2109060810
+    # hided by Holy 2109080810
+    # test_acc = 0.0
+    # for samples, labels in dataloaders['val']:
+    #     with torch.no_grad():
+    #         samples, labels = samples.to(device), labels.to(device)
+    #         output = model_ft(samples)
+    #         # calculate accuracy
+    #         # pred = torch.argmax(output, dim=1)
+    #         _, preds = torch.max(output, 1) # added by Holy 2109060810
+    #         # correct = pred.eq(labels)
+    #         test_acc += torch.sum(preds == labels.data) # added by Holy 2109060810
+    #         # test_acc += torch.mean(correct.float())
+    # # print('Accuracy of the network on {} test images: {}%'.format(len(image_datasets['val']), round(test_acc.item()*100.0/len(image_datasets['val']), 2)))
+    # print('Accuracy of the network on {} test images: {}%'.format(len(image_datasets['val']),
+    #                                                               test_acc.double()*100.0/len(image_datasets['val']))) # added by Holy 2109060810
+    # end of hide 2109080810
     # end of addition 2109041500
 
     """
