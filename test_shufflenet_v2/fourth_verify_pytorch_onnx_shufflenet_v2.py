@@ -35,3 +35,16 @@ cls = np.argmax(output[0][0], axis=0)
 val = output[0][0][cls]
 print("[onnx]--->predicted class:", cls)
 print("[onnx]--->predicted value:", val)
+
+# added by Holy 2109090810
+#simplified onnx test
+sess = rt.InferenceSession("model_shufflenet_v2_simplified.onnx")
+# sess = rt.InferenceSession("model_shufflenet_v2_x0_5.onnx") # added by Holy 2109030810
+x = "x"
+y = ["y"]
+output = sess.run(y, {x: img.numpy()})
+cls = np.argmax(output[0][0], axis=0)
+val = output[0][0][cls]
+print("[onnx_simplified]--->predicted class:", cls)
+print("[onnx_simplified]--->predicted value:", val)
+# end of addition 2109090810

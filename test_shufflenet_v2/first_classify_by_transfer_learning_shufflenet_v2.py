@@ -112,7 +112,7 @@ def train_model(model, criterion, optimizer, scheduler, start_epochs, n_epochs, 
                     with torch.set_grad_enabled(phase == 'train'):
                         outputs = model(inputs)
                         _, preds = torch.max(outputs, 1)
-                        loss = criterion(outputs, labels)
+                        loss = criterion(outputs, labels)                        
 
                         # backward + optimize only if in training phase
                         if phase == 'train':
@@ -307,7 +307,8 @@ if __name__ == "__main__":
 
     model_ft = model_ft.to(device)
 
-    criterion = nn.CrossEntropyLoss()
+    criterion = nn.CrossEntropyLoss() # Best val Acc: 0.767495 0.820902
+    # criterion = nn.BCEWithLogitsLoss() # Best val Acc: 
 
     # Observe that all parameters are being optimized
     optimizer_ft = optim.SGD(model_ft.parameters(), lr=INIT_LR, momentum=0.9)

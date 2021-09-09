@@ -28,25 +28,39 @@ int classify_wuSNet(const cv::Mat& bgr, std::vector<float>& cls_scores , string 
     wuSNet.load_param(paramPath.data());
     wuSNet.load_model(binPath.data());
 	
-	// cv::Mat roiImg=bgr(Range(245,474),Range(5,708)).clone();//提取Z75数据集卷扬区域的图像
+    // hided by Holy 2109010810
+	// cv::Mat roiImg=bgr(Range(276,276+201),Range(25,25+681)).clone();//提取Z75数据集卷扬区域的图像
 
-    // ncnn::Mat in = ncnn::Mat::from_pixels_resize(roiImg.data, ncnn::Mat::PIXEL_BGR2RGB, roiImg.cols, roiImg.rows, 174, 174);//recommend
+    // ncnn::Mat in = ncnn::Mat::from_pixels_resize(roiImg.data, ncnn::Mat::PIXEL_BGR2RGB, roiImg.cols, roiImg.rows, 224, 224);//recommend
 
-    cv::Mat roiImg = bgr(Range(276,276+201),Range(25,25+681)).clone(); // added by Holy 2109090810
-    ncnn::Mat in = ncnn::Mat::from_pixels_resize(roiImg.data, ncnn::Mat::PIXEL_BGR, roiImg.cols, roiImg.rows, 224, 224); // added by Holy 2109090810
-    // ncnn::Mat in = ncnn::Mat::from_pixels_resize(bgr.data, ncnn::Mat::PIXEL_BGR, bgr.cols, bgr.rows, 224, 224);
+    // const float mean_vals[3] = {0.485f*255.f, 0.456f*255.f, 0.406f*255.f};//recommend 均值
+    // const float norm_vals[3] = {1/0.229f/255.f, 1/0.224f/255.f, 1/0.225f/255.f};//recommend 方差
+
+    // in.substract_mean_normalize(mean_vals, norm_vals);
+    // end of hide 2109010810
+
+    // added by Holy 2109011500
+    // cv::Mat roiImg = bgr(Range(276,276+201),Range(25,25+681)).clone(); // hided by Holy 2109071500
+    cv::Mat roiImg=bgr(Range(245,474),Range(5,708)).clone(); // wudi added by Holy 2109090810
+
+    ncnn::Mat in = ncnn::Mat::from_pixels_resize(roiImg.data, ncnn::Mat::PIXEL_BGR, roiImg.cols, roiImg.rows, 174, 174); // hided by Holy 2109071500
+    // ncnn::Mat in = ncnn::Mat::from_pixels_resize(bgr.data, ncnn::Mat::PIXEL_BGR, bgr.cols, bgr.rows, 224, 224); // added by Holy 2109071500
 
     const float mean_vals[3] = {0.485f*255.f, 0.456f*255.f, 0.406f*255.f};//recommend 均值
     const float norm_vals[3] = {1/0.229f/255.f, 1/0.224f/255.f, 1/0.225f/255.f};//recommend 方差
 
     in.substract_mean_normalize(mean_vals, norm_vals);
+    // end of addition 2109011500
 
     ncnn::Extractor ex = wuSNet.create_extractor();
-    // ex.input("input.1", in);
-    ex.input("x", in); // added by Holy 2109090810
+
+    ex.set_light_mode(true); // added by Holy 2109010810
+
+    // ex.input("x", in);
+    ex.input("input.1", in); // wudi added by Holy 2109090810
     ncnn::Mat out;
-    // ex.extract("78", out);
-    ex.extract("y", out); // added by Holy 2109090810
+    // ex.extract("y", out);
+    ex.extract("78", out); // wudi added by Holy 2109090810
 
     cls_scores.resize(out.w);
 
@@ -58,7 +72,7 @@ int classify_wuSNet(const cv::Mat& bgr, std::vector<float>& cls_scores , string 
     return 0;
 }
 
-static int print_topk(const std::vector<float>& cls_scores, int topk)
+static int print_topk(const std::vector<float> &cls_scores, int topk)
 {
     // partial sort topk with index
     int size = cls_scores.size();
@@ -79,6 +93,7 @@ static int print_topk(const std::vector<float>& cls_scores, int topk)
         int index = vec[i].second;
         fprintf(stderr, "%d = %f\n", index, score);
     }
+
     int top1_index=vec[0].second;
     return top1_index;
 }
@@ -86,8 +101,18 @@ static int print_topk(const std::vector<float>& cls_scores, int topk)
 
 int main(int argc, char** argv)
 {
-    using namespace std;
-    using namespace cv;
+    // hided by Holy 2109010810
+    // using namespace std;
+    // using namespace cv;
+    // end of hide 2109010810
+
+    // added by Holy 2109010810
+    if (argc != 3)
+    {
+        fprintf(stderr, "Usage: %s [imagepath] [modelpath]\n", argv[0]);
+        return -1;
+    }
+    // end of addition 2109010810
 
     string path = argv[1];//输入图片文件夹地址
     string inputPath=argv[2];//输入模型地址文件名
@@ -158,6 +183,14 @@ int main(int argc, char** argv)
         classify_wuSNet(m, cls_scores,paramPath,binPath);
 
         result=print_topk(cls_scores, 2);
+
+        // tested by Holy 2109010810
+        // cout << "result: " << result << endl;
+        // if (i == 10)
+        // {
+        //     break;
+        // }
+        // end of test 2109010810
 
         // added by Holy 2108061500
         vecBMess.push_back(bool(1-result));

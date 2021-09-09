@@ -53,3 +53,12 @@ test_shufflenet_v2/__pycache__/shufflenet_v2.cpython-38.pyc
 test_shufflenet_v2/__pycache__/slim.cpython-38.pyc
 test_shufflenet_v2/best_model/best_model.pt
 test_shufflenet_v2/checkpoint/current_checkpoint.pt
+build/
+test_pyimagesearch/training_predict_holy/model_ft_shufflenet_v2.pth
+test_pyimagesearch/training_predict_holy/model_shufflenet_v2_simplified.onnx
+test_pyimagesearch/training_predict_holy/model_shufflenet_v2.onnx
+test_shufflenet_v2/model_ft_shufflenet_v2_0.914913.pth
+test_shufflenet_v2/model_ft_shufflenet_v2_0.928972.pth
+test_shufflenet_v2/model_ft_weights_shufflenet_v2_0.914913.pth
+test_shufflenet_v2/model_ft_weights_shufflenet_v2_0.928972.pth
+test_shufflenet_v2/best_model/best_model.pth

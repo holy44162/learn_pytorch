@@ -36,8 +36,8 @@ if __name__ == "__main__":
 
     # define training hyperparameters
     INIT_LR = 1e-3
-    BATCH_SIZE = 2**9
-    EPOCHS = 10
+    BATCH_SIZE = 2**6
+    EPOCHS = 5
 
     # define the train and val splits
     TRAIN_SPLIT = 0.75
@@ -46,6 +46,8 @@ if __name__ == "__main__":
     # set the device we will be using to train the model
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+    # hided by Holy 2109081500
+    """
     # load the KMNIST dataset
     print("[INFO] loading the KMNIST dataset...")
     trainData = KMNIST(root="data", train=True, download=True,
@@ -70,6 +72,8 @@ if __name__ == "__main__":
     # calculate steps per epoch for training and validation set
     trainSteps = len(trainDataLoader.dataset) // BATCH_SIZE
     valSteps = len(valDataLoader.dataset) // BATCH_SIZE
+    """
+    # end of hide 2109081500
 
     # added by Holy 2109070810
     data_transforms = {
@@ -99,6 +103,10 @@ if __name__ == "__main__":
     valDataLoader = dataloaders['val']
     testDataLoader = dataloaders['val']
 
+    # calculate steps per epoch for training and validation set
+    trainSteps = len(trainDataLoader.dataset) // BATCH_SIZE
+    valSteps = len(valDataLoader.dataset) // BATCH_SIZE
+
     # tested by Holy 2109070810
     print(class_names)
     print(dataset_sizes)
@@ -110,10 +118,12 @@ if __name__ == "__main__":
     # end of addition 2109070810
 
     # initialize the LeNet model
-    print("[INFO] initializing the LeNet model...")
-    model = LeNet(
-        numChannels=1,
-        classes=len(trainData.dataset.classes)).to(device)
+    print("[INFO] initializing the model...")
+    # hided by Holy 2109081500
+    # model = LeNet(
+    #     numChannels=1,
+    #     classes=len(trainData.dataset.classes)).to(device)
+    # end of hide 2109081500
     
     model = ShuffleNetV2(
         [4, 8, 4], [24, 116, 232, 464, 1024],

@@ -17,7 +17,7 @@ add_executable(wuSNet_test wuSNet_test.cpp)
 add_executable(test_onnx_ncnn test_onnx_ncnn.cpp)
 add_executable(verify_pytorch_ncnn test_pytorch_to_ncnn/verify_pytorch_ncnn.cpp) # added by Holy 2108310810
 add_executable(verify_pytorch_ncnn_holy test_pytorch_to_ncnn/verify_pytorch_ncnn_holy.cpp) # added by Holy 2108310810
-add_executable(verify_pytorch_ncnn_shufflenet_v2 test_shufflenet_v2/sixth_verify_pytorch_ncnn_shufflenet_v2.cpp) # added by Holy 2109021500
+add_executable(verify_pytorch_ncnn_shufflenet_v2 test_shufflenet_v2/_sixth_verify_pytorch_ncnn_shufflenet_v2.cpp) # added by Holy 2109021500
 add_executable(eighth_onnx_ncnn test_shufflenet_v2/eighth_onnx_ncnn.cpp) # added by Holy 2109041002
 
 target_link_libraries(wuSNet_test ${OpenCV_LIBS} 

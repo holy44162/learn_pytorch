@@ -331,7 +331,7 @@ if __name__ == "__main__":
     str_imgs_list = list_files(path, "jpg")
     for str_img_name in str_imgs_list:
         str_img_name = str(Path(path) / str_img_name)
-        print(str_img_name)
+        # print(str_img_name)
 
         # hided by Holy 2109010810
         # PIL_image = PIL.Image.open(str_img_name)
@@ -348,7 +348,7 @@ if __name__ == "__main__":
 
         # added by Holy 2109010810
         img = cv2.imread(str_img_name)
-        img = img[276:276+201, 25:25+681] # hided by Holy 2109071500
+        # img = img[276:276+201, 25:25+681] # hided by Holy 2109071500
         img = cv2.resize(img, (224, 224))
 
         # tested by Holy 2109060810
@@ -408,10 +408,3 @@ if __name__ == "__main__":
     print(f'prec: {prec}')
     print(f'rec: {rec}')
     print(f'f1: {dF1}')
-
-    # added by Holy 2109090810
-    vecBResult = [ x == y for (x,y) in zip(vecBMessYTest, vecBMess)]    
-    acc = float(sum(vecBResult)) / float(len(vecBResult))
-    print(f'acc: {acc}')
-    print(f'num: {len(vecBResult)}')    
-    # end of addition 2109090810
