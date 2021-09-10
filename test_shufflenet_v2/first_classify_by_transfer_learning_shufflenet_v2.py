@@ -76,6 +76,8 @@ def train_model(model, criterion, optimizer, scheduler, start_epochs, n_epochs, 
     best_model_wts = copy.deepcopy(model.state_dict())
     best_acc = 0.0
 
+    break_num = 0 # added by Holy 2109100810
+
     # for epoch in range(num_epochs):
     for epoch in range(start_epochs, n_epochs+1): # added by Holy 2109041500        
         # initialize variables to monitor training and validation loss
@@ -167,7 +169,15 @@ def train_model(model, criterion, optimizer, scheduler, start_epochs, n_epochs, 
             # save checkpoint as best model
             save_ckp(checkpoint, True, checkpoint_path, best_model_path)
             valid_loss_min = valid_loss
+
+            break_num = 0 # added by Holy 2109100810
         # end of addition 2109041500
+        # added by Holy 2109100810
+        else:
+            break_num += 1
+            if break_num > 10:
+                break
+        # end of addition 2109100810
 
     time_elapsed = time.time() - since
     print('Training complete in {:.0f}m {:.0f}s'.format(
@@ -242,14 +252,15 @@ if __name__ == "__main__":
     # BATCH_SIZE = 2**2 # 2m 19s 0.967727
     # BATCH_SIZE = 2**1 # 3m 54s 0.964920
     # BATCH_SIZE = 2**0 # 6m 56s 0.757717
-    EPOCHS = 5
+    EPOCHS = 100
     # end of addition 2109080810
 
     # added by Holy 2109041002
     data_transforms = {
         'train': transforms.Compose([
             transforms.Resize([224, 224]),
-            # transforms.RandomHorizontalFlip(),
+            # transforms.RandomHorizontalFlip(), # added by Holy 2109100810
+            # transforms.ColorJitter(brightness=.5, hue=.3), # added by Holy 2109100810
             transforms.ToTensor(),
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ]),
@@ -311,7 +322,8 @@ if __name__ == "__main__":
     # criterion = nn.BCEWithLogitsLoss() # Best val Acc: 
 
     # Observe that all parameters are being optimized
-    optimizer_ft = optim.SGD(model_ft.parameters(), lr=INIT_LR, momentum=0.9)
+    # optimizer_ft = optim.SGD(model_ft.parameters(), lr=INIT_LR, momentum=0.9)
+    optimizer_ft = optim.Adam(model_ft.parameters(), lr=INIT_LR)
 
     # Decay LR by a factor of 0.1 every 7 epochs
     exp_lr_scheduler = lr_scheduler.StepLR(
@@ -327,7 +339,7 @@ if __name__ == "__main__":
     end_epochs = start_epochs + EPOCHS
     checkpoint_path = './checkpoint/current_checkpoint.pt'
     best_model_path = './best_model/best_model.pt'
-    resume_training = True
+    resume_training = False
     if resume_training:
         # added by Holy 2109060810
         model_ft = torch.hub.load('pytorch/vision:v0.10.0', 'shufflenet_v2_x1_0', pretrained=False)
