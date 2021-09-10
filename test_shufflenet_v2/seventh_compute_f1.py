@@ -348,7 +348,7 @@ if __name__ == "__main__":
 
         # added by Holy 2109010810
         img = cv2.imread(str_img_name)
-        img = img[276:276+201, 25:25+681] # hided by Holy 2109071500
+        # img = img[276:276+201, 25:25+681] # hided by Holy 2109071500
         img = cv2.resize(img, (224, 224))
 
         # tested by Holy 2109060810

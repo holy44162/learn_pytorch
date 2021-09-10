@@ -17,6 +17,11 @@ import shutil # added by Holy 2109041002
 
 from tqdm import tqdm # added by Holy 2109081500
 
+# added by Holy 2109100810
+import matplotlib
+matplotlib.use("Agg")
+# end of addition 2109100810
+
 # added by Holy 2109041002
 def save_ckp(state, is_best, checkpoint_path, best_model_path):
     """
@@ -66,6 +71,16 @@ def imshow(inp, title=None):
 
 
 def train_model(model, criterion, optimizer, scheduler, start_epochs, n_epochs, valid_loss_min_input=None, checkpoint_path=None, best_model_path=None):
+    # added by Holy 2109100810
+    # initialize a dictionary to store training history
+    H = {
+        "train_loss": [],
+        "train_acc": [],
+        "val_loss": [],
+        "val_acc": []
+    }
+    # end of addition 2109100810
+
     since = time.time()
 
     # added by Holy 2109041500
@@ -82,6 +97,12 @@ def train_model(model, criterion, optimizer, scheduler, start_epochs, n_epochs, 
     for epoch in range(start_epochs, n_epochs+1): # added by Holy 2109041500        
         # initialize variables to monitor training and validation loss
         valid_loss = 0.0 # added by Holy 2109041500
+
+        # added by Holy 2109100810
+        train_loss = 0.0
+        train_acc = 0.0
+        valid_acc = 0.0
+        # end of addition 2109100810
 
         # print('Epoch {}/{}'.format(epoch, num_epochs - 1))
         print('Epoch {}/{}'.format(epoch, n_epochs)) # added by Holy 2109041500
@@ -147,9 +168,24 @@ def train_model(model, criterion, optimizer, scheduler, start_epochs, n_epochs, 
                 # added by Holy 2109041500
                 if phase == 'val':
                     valid_loss = epoch_loss
+                    valid_acc = epoch_acc # added by Holy 2109100810
                 # end of addition 2109041500
 
+                # added by Holy 2109100810
+                if phase == 'train':
+                    train_loss = epoch_loss
+                    train_acc = epoch_acc
+                # end of addition 2109100810
+
         print()
+
+        # added by Holy 2109100810
+        # update our training history
+        H["train_loss"].append(train_loss)
+        H["train_acc"].append(train_acc.cpu().detach().numpy())
+        H["val_loss"].append(valid_loss)
+        H["val_acc"].append(valid_acc.cpu().detach().numpy())
+        # end of addition 2109100810
 
         # added by Holy 2109041500
         # create checkpoint variable and add important data
@@ -183,6 +219,21 @@ def train_model(model, criterion, optimizer, scheduler, start_epochs, n_epochs, 
     print('Training complete in {:.0f}m {:.0f}s'.format(
         time_elapsed // 60, time_elapsed % 60))
     print('Best val Acc: {:4f}'.format(best_acc))
+
+    # added by Holy 2109100810
+    # plot the training loss and accuracy
+    plt.style.use("ggplot")
+    plt.figure()
+    plt.plot(H["train_loss"], label="train_loss")
+    plt.plot(H["val_loss"], label="val_loss")
+    plt.plot(H["train_acc"], label="train_acc")
+    plt.plot(H["val_acc"], label="val_acc")
+    plt.title("Training Loss and Accuracy on Dataset")
+    plt.xlabel("Epoch #")
+    plt.ylabel("Loss/Accuracy")
+    plt.legend(loc="lower left")
+    plt.savefig('plot.png')
+    # end of addition 2109100810
 
     # load best model weights
     model.load_state_dict(best_model_wts)
@@ -252,7 +303,7 @@ if __name__ == "__main__":
     # BATCH_SIZE = 2**2 # 2m 19s 0.967727
     # BATCH_SIZE = 2**1 # 3m 54s 0.964920
     # BATCH_SIZE = 2**0 # 6m 56s 0.757717
-    EPOCHS = 100
+    EPOCHS = 2
     # end of addition 2109080810
 
     # added by Holy 2109041002
@@ -286,14 +337,16 @@ if __name__ == "__main__":
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-    # Visualize a few images
-    # Get a batch of training data
-    inputs, classes = next(iter(dataloaders['train']))
+    # hided by Holy 2109101500
+    # # Visualize a few images
+    # # Get a batch of training data
+    # inputs, classes = next(iter(dataloaders['train']))
+    
+    # # Make a grid from batch
+    # out = torchvision.utils.make_grid(inputs)
 
-    # Make a grid from batch
-    out = torchvision.utils.make_grid(inputs)
-
-    imshow(out, title=[class_names[x] for x in classes])
+    # imshow(out, title=[class_names[x] for x in classes])
+    # end of hide 2109101500
 
     # Training the model
     # hided by Holy 2109031500
@@ -379,7 +432,7 @@ if __name__ == "__main__":
     torch.save(model_ft.state_dict(), 'model_ft_weights_shufflenet_v2.pth')
     # torch.save(model_ft.state_dict(), 'model_ft_weights_shufflenet_v2_x0_5.pth') # added by Holy 2109030810
 
-    visualize_model(model_ft)
+    visualize_model(model_ft) # hided by Holy 2109101500
 
     # added by Holy 2109041500
     model_ft.eval()
@@ -435,6 +488,7 @@ if __name__ == "__main__":
     torch.save(model_conv.state_dict(), 'model_conv_weights.pth')
 
     visualize_model(model_conv)
-    """
+    
     plt.ioff()
     plt.show()
+    """
