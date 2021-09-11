@@ -293,10 +293,10 @@ if __name__ == "__main__":
 
     # added by Holy 2109080810
     INIT_LR = 1e-3
-    # BATCH_SIZE = 2**9 # 1m 37s 0.549111
+    BATCH_SIZE = 2**9 # 1m 37s 0.549111
     # BATCH_SIZE = 2**8 # 1m 9s 0.512161
     # BATCH_SIZE = 2**7 # 1m 6s 0.507951
-    BATCH_SIZE = 2**6 # 1m 5s 0.699252 Best val Acc: 0.867166
+    # BATCH_SIZE = 2**6 # 1m 5s 0.699252 Best val Acc: 0.867166
     # BATCH_SIZE = 2**5 # 1m 5s 0.667446
     # BATCH_SIZE = 2**4 # 1m 8s 0.744153
     # BATCH_SIZE = 2**3 # 1m 34s 0.783910
