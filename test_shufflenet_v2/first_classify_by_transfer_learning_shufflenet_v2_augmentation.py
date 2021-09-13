@@ -20,7 +20,15 @@ from tqdm import tqdm # added by Holy 2109081500
 # added by Holy 2109100810
 import matplotlib
 matplotlib.use("Agg")
+from torch.utils.data import Dataset
 # end of addition 2109100810
+
+# added by Holy 2109130810
+import albumentations as A
+from albumentations.pytorch import ToTensorV2
+import cv2
+from torchvision.datasets.folder import *
+# end of addition 2109130810
 
 # added by Holy 2109041002
 def save_ckp(state, is_best, checkpoint_path, best_model_path):
@@ -111,6 +119,7 @@ def train_model(model, criterion, optimizer, scheduler, start_epochs, n_epochs, 
         # Each epoch has a training and validation phase
         for phase in ['train', 'val']:
             with tqdm(dataloaders[phase], unit="batch") as tepoch: # added by Holy 2109081500
+            # with tqdm(dataloaders[phase]) as tepoch: # added by Holy 2109131500
                 if phase == 'train':
                     model.train()  # Set model to training mode
                 else:
@@ -122,6 +131,7 @@ def train_model(model, criterion, optimizer, scheduler, start_epochs, n_epochs, 
                 # Iterate over data.
                 # for inputs, labels in dataloaders[phase]:
                 for inputs, labels in tepoch: # added by Holy 2109081500
+                # for (inputs, labels) in enumerate(tepoch, start=1): # added by Holy 2109131500
                     tepoch.set_description(f"Epoch {epoch}") # added by Holy 2109081500
 
                     inputs = inputs.to(device)
@@ -239,33 +249,62 @@ def train_model(model, criterion, optimizer, scheduler, start_epochs, n_epochs, 
     model.load_state_dict(best_model_wts)
     return model
 
+# hided by Holy 2109131500
+# def visualize_model(model, num_images=6):
+#     was_training = model.training
+#     model.eval()
+#     images_so_far = 0
+#     fig = plt.figure()
 
-def visualize_model(model, num_images=6):
-    was_training = model.training
-    model.eval()
-    images_so_far = 0
-    fig = plt.figure()
+#     with torch.no_grad():
+#         for i, (inputs, labels) in enumerate(dataloaders['val']):
+#             inputs = inputs.to(device)
+#             labels = labels.to(device)
 
-    with torch.no_grad():
-        for i, (inputs, labels) in enumerate(dataloaders['val']):
-            inputs = inputs.to(device)
-            labels = labels.to(device)
+#             outputs = model(inputs)
+#             _, preds = torch.max(outputs, 1)
 
-            outputs = model(inputs)
-            _, preds = torch.max(outputs, 1)
+#             for j in range(inputs.size()[0]):
+#                 images_so_far += 1
+#                 ax = plt.subplot(num_images//2, 2, images_so_far)
+#                 ax.axis('off')
+#                 ax.set_title('predicted: {}'.format(class_names[preds[j]]))
+#                 imshow(inputs.cpu().data[j])
 
-            for j in range(inputs.size()[0]):
-                images_so_far += 1
-                ax = plt.subplot(num_images//2, 2, images_so_far)
-                ax.axis('off')
-                ax.set_title('predicted: {}'.format(class_names[preds[j]]))
-                imshow(inputs.cpu().data[j])
+#                 if images_so_far == num_images:
+#                     model.train(mode=was_training)
+#                     return
+#         model.train(mode=was_training)
+# end of hide 2109131500
 
-                if images_so_far == num_images:
-                    model.train(mode=was_training)
-                    return
-        model.train(mode=was_training)
+# added by Holy 2109131500
+class NormalVsMessFolder(DatasetFolder):
+    def __init__(self,root: str,transform = None,target_transform = None,loader = default_loader,is_valid_file= None):
+        super(NormalVsMessFolder, self).__init__(root, loader, IMG_EXTENSIONS if is_valid_file is None else None,
+                                          transform=transform,
+                                          target_transform=target_transform,
+                                          is_valid_file=is_valid_file)
+        self.imgs = self.samples
+    
+    def __getitem__(self, index: int):
+        """
+        Args:
+            index (int): Index
 
+        Returns:
+            tuple: (sample, target) where target is class_index of the target class.
+        """
+        path, target = self.samples[index]
+        # sample = self.loader(path)
+        sample = cv2.imread(path)
+        sample = cv2.cvtColor(sample, cv2.COLOR_BGR2RGB)
+        if self.transform is not None:
+            sample = self.transform(image=sample)["image"]
+        if self.target_transform is not None:
+            target = self.target_transform(target)
+
+        return sample, target
+# end of addition 2109131500
 
 if __name__ == "__main__":
     plt.ion()
@@ -306,35 +345,60 @@ if __name__ == "__main__":
     EPOCHS = 10
     # end of addition 2109080810
 
-    # added by Holy 2109041002
+    # hided by Holy 2109131500
+    # # added by Holy 2109041002
+    # data_transforms = {
+    #     'train': transforms.Compose([
+    #         transforms.Resize([224, 224]),
+    #         # transforms.RandomHorizontalFlip(), # added by Holy 2109100810
+    #         # transforms.ColorJitter(brightness=.5, hue=.3), # added by Holy 2109100810
+    #         transforms.ToTensor(),
+    #         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+    #     ]),
+    #     'val': transforms.Compose([
+    #         transforms.Resize([224, 224]),
+    #         transforms.ToTensor(),
+    #         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+    #     ]),
+    # }
+    # # end of addition 2109041002
+    # end of hide 2109131500
+
+    # added by Holy 2109130810
     data_transforms = {
-        'train': transforms.Compose([
-            transforms.Resize([224, 224]),
-            # transforms.RandomHorizontalFlip(), # added by Holy 2109100810
-            # transforms.ColorJitter(brightness=.5, hue=.3), # added by Holy 2109100810
-            transforms.ToTensor(),
-            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+        'train': A.Compose([
+            A.Resize(224, 224),
+            A.ShiftScaleRotate(shift_limit=0.05, scale_limit=0.05, rotate_limit=15, p=0.5),
+            A.RGBShift(r_shift_limit=15, g_shift_limit=15, b_shift_limit=15, p=0.5),
+            A.RandomBrightnessContrast(p=0.5),
+            A.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
+            ToTensorV2(),
         ]),
-        'val': transforms.Compose([
-            transforms.Resize([224, 224]),
-            transforms.ToTensor(),
-            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+        'val': A.Compose([
+            A.Resize(224, 224),
+            A.SmallestMaxSize(max_size=160),
+            A.CenterCrop(height=128, width=128),
+            A.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
+            ToTensorV2(),
         ]),
     }
-    # end of addition 2109041002
+    # end of addition 2109130810
 
     # data_dir = 'data/hymenoptera_data'
     # data_dir = 'data/z75_data' # added by Holy 2108171500
     data_dir = 'e:/dnn_data/z75_data' # added by Holy 2108171500
-    image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir, x),
+    # image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir, x),
+    #                                           data_transforms[x])
+    #                   for x in ['train', 'val']}
+    image_datasets = {x: NormalVsMessFolder(os.path.join(data_dir, x),
                                               data_transforms[x])
-                      for x in ['train', 'val']}
+                      for x in ['train', 'val']} # added by Holy 2109131500
     dataloaders = {x: torch.utils.data.DataLoader(image_datasets[x], batch_size=BATCH_SIZE,
                                                   shuffle=True, num_workers=4)
                    for x in ['train', 'val']}
     dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'val']}
     class_names = image_datasets['train'].classes
-
+    
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     # hided by Holy 2109101500
@@ -432,7 +496,7 @@ if __name__ == "__main__":
     torch.save(model_ft.state_dict(), 'model_ft_weights_shufflenet_v2.pth')
     # torch.save(model_ft.state_dict(), 'model_ft_weights_shufflenet_v2_x0_5.pth') # added by Holy 2109030810
 
-    visualize_model(model_ft) # hided by Holy 2109101500
+    # visualize_model(model_ft) # hided by Holy 2109101500
 
     # added by Holy 2109041500
     model_ft.eval()
