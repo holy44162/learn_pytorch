@@ -301,7 +301,7 @@ if __name__ == "__main__":
     model_ft_full = torch.load('model_ft_shufflenet_v2.pth')
     # model_ft_full = model_ft_full.to(device) # hided by Holy 2109010810
 
-    strDatasetPrefix = 'd:/data_seq/gongqiWinding/Z75_DF-4105H-BD/210820/shrinkVideo/bigDatasets/testValidateCV'
+    strDatasetPrefix = 'd:/data_seq/gongqiWinding/Z75_DF-4105H-BD/210820/shrinkVideo/bigDatasets/test'
     path = str(Path(strDatasetPrefix) / 'imgs')
     print(path)
 
@@ -348,6 +348,7 @@ if __name__ == "__main__":
 
         # added by Holy 2109010810
         img = cv2.imread(str_img_name)
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB) # added by Holy 2109131500
         # img = img[276:276+201, 25:25+681] # hided by Holy 2109071500
         img = cv2.resize(img, (224, 224))
 

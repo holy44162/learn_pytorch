@@ -73,3 +73,5 @@ test_shufflenet_v2/model_ft_weights_shufflenet_v2_0.954261.pth
 test_shufflenet_v2/plot.png
 test_shufflenet_v2/model_ft_shufflenet_v2_0.993530.pth
 test_shufflenet_v2/model_ft_weights_shufflenet_v2_0.993530.pth
+test_shufflenet_v2/model_ft_shufflenet_v2_1.pth
+test_shufflenet_v2/model_ft_weights_shufflenet_v2_1.pth

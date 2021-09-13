@@ -376,8 +376,8 @@ if __name__ == "__main__":
         ]),
         'val': A.Compose([
             A.Resize(224, 224),
-            A.SmallestMaxSize(max_size=160),
-            A.CenterCrop(height=128, width=128),
+            # A.SmallestMaxSize(max_size=160),
+            # A.CenterCrop(height=128, width=128),
             A.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
             ToTensorV2(),
         ]),

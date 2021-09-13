@@ -34,7 +34,8 @@ int classify_wuSNet(const cv::Mat& bgr, std::vector<float>& cls_scores , string 
 
     // cv::Mat roiImg = bgr(Range(276,276+201),Range(25,25+681)).clone(); // added by Holy 2109090810
     // ncnn::Mat in = ncnn::Mat::from_pixels_resize(roiImg.data, ncnn::Mat::PIXEL_BGR, roiImg.cols, roiImg.rows, 224, 224); // added by Holy 2109090810
-    ncnn::Mat in = ncnn::Mat::from_pixels_resize(bgr.data, ncnn::Mat::PIXEL_BGR, bgr.cols, bgr.rows, 224, 224);
+    // ncnn::Mat in = ncnn::Mat::from_pixels_resize(bgr.data, ncnn::Mat::PIXEL_BGR, bgr.cols, bgr.rows, 224, 224);
+    ncnn::Mat in = ncnn::Mat::from_pixels_resize(bgr.data, ncnn::Mat::PIXEL_BGR2RGB, bgr.cols, bgr.rows, 224, 224); // added by Holy 2109131500
 
     const float mean_vals[3] = {0.485f*255.f, 0.456f*255.f, 0.406f*255.f};//recommend 均值
     const float norm_vals[3] = {1/0.229f/255.f, 1/0.224f/255.f, 1/0.225f/255.f};//recommend 方差
