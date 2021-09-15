@@ -100,6 +100,7 @@ def train_model(model, criterion, optimizer, scheduler, start_epochs, n_epochs, 
     best_acc = 0.0
 
     break_num = 0 # added by Holy 2109100810
+    break_num_threshold = 30 # added by Holy 2109150810
 
     # for epoch in range(num_epochs):
     for epoch in range(start_epochs, n_epochs+1): # added by Holy 2109041500        
@@ -221,7 +222,7 @@ def train_model(model, criterion, optimizer, scheduler, start_epochs, n_epochs, 
         # added by Holy 2109100810
         else:
             break_num += 1
-            if break_num > 10:
+            if break_num > break_num_threshold:
                 break
         # end of addition 2109100810
 
@@ -342,7 +343,7 @@ if __name__ == "__main__":
     # BATCH_SIZE = 2**2 # 2m 19s 0.967727
     # BATCH_SIZE = 2**1 # 3m 54s 0.964920
     # BATCH_SIZE = 2**0 # 6m 56s 0.757717
-    EPOCHS = 10
+    EPOCHS = 100
     # end of addition 2109080810
 
     # hided by Holy 2109131500
@@ -364,25 +365,110 @@ if __name__ == "__main__":
     # # end of addition 2109041002
     # end of hide 2109131500
 
-    # added by Holy 2109130810
+    # hided by Holy 2109150810
+    # # added by Holy 2109130810
+    # data_transforms = {
+    #     'train': A.Compose([
+    #         A.Resize(224, 224),
+    #         A.ShiftScaleRotate(shift_limit=0.05, scale_limit=0.05, rotate_limit=15, p=0.5),
+    #         A.RGBShift(r_shift_limit=15, g_shift_limit=15, b_shift_limit=15, p=0.5),
+    #         A.RandomBrightnessContrast(p=0.5),
+    #         A.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
+    #         ToTensorV2(),
+    #     ]),
+    #     'val': A.Compose([
+    #         A.Resize(224, 224),
+    #         # A.SmallestMaxSize(max_size=160),
+    #         # A.CenterCrop(height=128, width=128),
+    #         A.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
+    #         ToTensorV2(),
+    #     ]),
+    # }
+    # # end of addition 2109130810
+    # end of hide 2109150810
+
+    # added by Holy 2109150810
     data_transforms = {
         'train': A.Compose([
             A.Resize(224, 224),
-            A.ShiftScaleRotate(shift_limit=0.05, scale_limit=0.05, rotate_limit=15, p=0.5),
-            A.RGBShift(r_shift_limit=15, g_shift_limit=15, b_shift_limit=15, p=0.5),
-            A.RandomBrightnessContrast(p=0.5),
+            A.OneOf([
+                A.HorizontalFlip(),
+                A.Blur(),
+                A.CLAHE(),
+                A.ColorJitter(),
+                A.Emboss(),
+                A.Equalize(),
+                A.FancyPCA(),
+                A.GaussNoise(),
+                A.GaussianBlur(),
+                A.HueSaturationValue(),
+                A.ISONoise(),
+                A.ImageCompression(),
+                A.MedianBlur(),
+                A.MotionBlur(),
+                A.MultiplicativeNoise(),
+                A.Posterize(),
+                A.RGBShift(),
+                A.RandomBrightnessContrast(),
+                A.RandomFog(),
+                A.RandomGamma(),
+                A.RandomRain(),
+                A.RandomShadow(),
+                A.RandomSnow(),
+                A.RandomSunFlare(),
+                A.RandomToneCurve(),
+                A.Sharpen(),
+                A.CoarseDropout(),
+                A.Flip(),
+                A.Perspective(),
+                A.RandomGridShuffle(),
+                A.ShiftScaleRotate(),
+                A.VerticalFlip(),
+                ], p=1),
             A.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
             ToTensorV2(),
         ]),
         'val': A.Compose([
             A.Resize(224, 224),
-            # A.SmallestMaxSize(max_size=160),
-            # A.CenterCrop(height=128, width=128),
+            A.OneOf([            
+                A.HorizontalFlip(),
+                A.Blur(),
+                A.CLAHE(),
+                A.ColorJitter(),
+                A.Emboss(),
+                A.Equalize(),
+                A.FancyPCA(),
+                A.GaussNoise(),
+                A.GaussianBlur(),
+                A.HueSaturationValue(),
+                A.ISONoise(),
+                A.ImageCompression(),
+                A.MedianBlur(),
+                A.MotionBlur(),
+                A.MultiplicativeNoise(),
+                A.Posterize(),
+                A.RGBShift(),
+                A.RandomBrightnessContrast(),
+                A.RandomFog(),
+                A.RandomGamma(),
+                A.RandomRain(),
+                A.RandomShadow(),
+                A.RandomSnow(),
+                A.RandomSunFlare(),
+                A.RandomToneCurve(),
+                A.Sharpen(),
+                A.CoarseDropout(),
+                A.Flip(),
+                A.Perspective(),
+                A.RandomGridShuffle(),
+                A.ShiftScaleRotate(),
+                A.VerticalFlip(),
+                ], p=1),
             A.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-            ToTensorV2(),
-        ]),
+            ToTensorV2(),        
+        ])
     }
-    # end of addition 2109130810
+    # end of addition 2109150810
 
     # data_dir = 'data/hymenoptera_data'
     # data_dir = 'data/z75_data' # added by Holy 2108171500
@@ -456,7 +542,7 @@ if __name__ == "__main__":
     end_epochs = start_epochs + EPOCHS
     checkpoint_path = './checkpoint/current_checkpoint.pt'
     best_model_path = './best_model/best_model.pt'
-    resume_training = False
+    resume_training = True
     if resume_training:
         # added by Holy 2109060810
         model_ft = torch.hub.load('pytorch/vision:v0.10.0', 'shufflenet_v2_x1_0', pretrained=False)
@@ -469,7 +555,8 @@ if __name__ == "__main__":
         criterion = nn.CrossEntropyLoss()
 
         # Observe that all parameters are being optimized
-        optimizer_ft = optim.SGD(model_ft.parameters(), lr=0.001, momentum=0.9)
+        # optimizer_ft = optim.SGD(model_ft.parameters(), lr=0.001, momentum=0.9)
+        optimizer_ft = optim.Adam(model_ft.parameters(), lr=INIT_LR) # added by Holy 2109150810
 
         # Decay LR by a factor of 0.1 every 7 epochs
         exp_lr_scheduler = lr_scheduler.StepLR(

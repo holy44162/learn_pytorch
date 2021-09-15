@@ -301,7 +301,7 @@ if __name__ == "__main__":
     model_ft_full = torch.load('model_ft_shufflenet_v2.pth')
     # model_ft_full = model_ft_full.to(device) # hided by Holy 2109010810
 
-    strDatasetPrefix = 'd:/data_seq/gongqiWinding/Z75_DF-4105H-BD/210820/shrinkVideo/bigDatasets/test'
+    strDatasetPrefix = 'd:/data_seq/gongqiWinding/Z75_DF-4105H-BD/210820/shrinkVideo/bigDatasets/testValidateCV'
     path = str(Path(strDatasetPrefix) / 'imgs')
     print(path)
 

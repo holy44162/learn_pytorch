@@ -75,3 +75,12 @@ test_shufflenet_v2/model_ft_shufflenet_v2_0.993530.pth
 test_shufflenet_v2/model_ft_weights_shufflenet_v2_0.993530.pth
 test_shufflenet_v2/model_ft_shufflenet_v2_1.pth
 test_shufflenet_v2/model_ft_weights_shufflenet_v2_1.pth
+test_shufflenet_v2/model_ft_shufflenet_v2_0.999539_v1.0.pth
+test_shufflenet_v2/model_ft_shufflenet_v2_0.999539_v1.1.pth
+test_shufflenet_v2/model_ft_shufflenet_v2_1_v1.0.pth
+test_shufflenet_v2/model_ft_shufflenet_v2_1_v1.1.pth
+test_shufflenet_v2/model_ft_weights_shufflenet_v2_0.999539_v1.0.pth
+test_shufflenet_v2/model_ft_weights_shufflenet_v2_0.999539_v1.1.pth
+test_shufflenet_v2/model_ft_weights_shufflenet_v2_1_v1.0.pth
+test_shufflenet_v2/plot_2109150956.png
+test_shufflenet_v2/plot_2109151056.png
