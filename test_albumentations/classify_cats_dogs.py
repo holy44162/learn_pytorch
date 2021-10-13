@@ -241,14 +241,25 @@ if __name__ == "__main__":
     random.seed(42)
     visualize_augmentations(train_dataset)
 
+    # params = {
+    #     "model": "resnet50",
+    #     "device": "cuda",
+    #     "lr": 0.001,
+    #     "batch_size": 64,
+    #     "num_workers": 4,
+    #     "epochs": 10,
+    # }
+
+    # tested by Holy 2110131500
     params = {
-        "model": "resnet50",
+        "model": "shufflenet_v2_x1_0",
         "device": "cuda",
         "lr": 0.001,
         "batch_size": 64,
         "num_workers": 4,
         "epochs": 10,
     }
+    # end of test 2110131500
 
     model = getattr(models, params["model"])(pretrained=False, num_classes=1,)
     model = model.to(params["device"])

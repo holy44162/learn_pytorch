@@ -136,7 +136,7 @@ def train_model(model, criterion, optimizer, scheduler, start_epochs, n_epochs, 
                     tepoch.set_description(f"Epoch {epoch}") # added by Holy 2109081500
 
                     inputs = inputs.to(device)
-                    labels = labels.to(device)
+                    labels = labels.to(device).float().view(-1, 1)
 
                     # zero the parameter gradients
                     optimizer.zero_grad()
@@ -145,8 +145,9 @@ def train_model(model, criterion, optimizer, scheduler, start_epochs, n_epochs, 
                     # track history if only in train
                     with torch.set_grad_enabled(phase == 'train'):
                         outputs = model(inputs)
-                        _, preds = torch.max(outputs, 1)
-                        loss = criterion(outputs, labels)                        
+                        # _, preds = torch.max(outputs, 1)
+                        preds = torch.sigmoid(outputs) >= 0.5
+                        loss = criterion(outputs, labels)
 
                         # backward + optimize only if in training phase
                         if phase == 'train':
@@ -506,7 +507,7 @@ if __name__ == "__main__":
     num_ftrs = model_ft.fc.in_features
     # Here the size of each output sample is set to 2.
     # Alternatively, it can be generalized to nn.Linear(num_ftrs, len(class_names)).
-    model_ft.fc = nn.Linear(num_ftrs, 2)
+    model_ft.fc = nn.Linear(num_ftrs, 1)
     # end of hide 2109031500
 
     # added by Holy 2109031500
@@ -521,8 +522,9 @@ if __name__ == "__main__":
 
     model_ft = model_ft.to(device)
 
-    criterion = nn.CrossEntropyLoss() # Best val Acc: 0.767495 0.820902
+    # criterion = nn.CrossEntropyLoss() # Best val Acc: 0.767495 0.820902
     # criterion = nn.BCEWithLogitsLoss() # Best val Acc: 
+    criterion = nn.BCEWithLogitsLoss()
 
     # Observe that all parameters are being optimized
     # optimizer_ft = optim.SGD(model_ft.parameters(), lr=INIT_LR, momentum=0.9)

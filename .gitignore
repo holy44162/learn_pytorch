@@ -1,86 +1,165 @@
-model_conv_weights.pth
-model_conv.pth
-model_ft_weights.pth
-model_ft.pth
-model.bin
-model.onnx
-wuSNet.bin
-wuSNet.param
-test_pyimagesearch/classify_pretrained/pyimagesearch/__pycache__/config.cpython-38.pyc
-test_pyimagesearch/training_predict/data/KMNIST/processed/test.pt
-test_pyimagesearch/training_predict/data/KMNIST/processed/training.pt
-test_pyimagesearch/training_predict/data/KMNIST/raw/t10k-images-idx3-ubyte
-test_pyimagesearch/training_predict/data/KMNIST/raw/t10k-images-idx3-ubyte.gz
-test_pyimagesearch/training_predict/data/KMNIST/raw/t10k-labels-idx1-ubyte
-test_pyimagesearch/training_predict/data/KMNIST/raw/t10k-labels-idx1-ubyte.gz
-test_pyimagesearch/training_predict/data/KMNIST/raw/train-images-idx3-ubyte
-test_pyimagesearch/training_predict/data/KMNIST/raw/train-images-idx3-ubyte.gz
-test_pyimagesearch/training_predict/data/KMNIST/raw/train-labels-idx1-ubyte
-test_pyimagesearch/training_predict/data/KMNIST/raw/train-labels-idx1-ubyte.gz
-test_pyimagesearch/training_predict/output/model.pth
-test_pyimagesearch/training_predict/output/plot.png
-test_pyimagesearch/training_predict/pyimagesearch/__pycache__/__init__.cpython-38.pyc
-test_pyimagesearch/training_predict/pyimagesearch/__pycache__/lenet.cpython-38.pyc
-test_pyimagesearch/training_predict_holy/data/KMNIST/processed/test.pt
-test_pyimagesearch/training_predict_holy/data/KMNIST/processed/training.pt
-test_pyimagesearch/training_predict_holy/data/KMNIST/raw/t10k-images-idx3-ubyte
-test_pyimagesearch/training_predict_holy/data/KMNIST/raw/t10k-images-idx3-ubyte.gz
-test_pyimagesearch/training_predict_holy/data/KMNIST/raw/t10k-labels-idx1-ubyte
-test_pyimagesearch/training_predict_holy/data/KMNIST/raw/t10k-labels-idx1-ubyte.gz
-test_pyimagesearch/training_predict_holy/data/KMNIST/raw/train-images-idx3-ubyte
-test_pyimagesearch/training_predict_holy/data/KMNIST/raw/train-images-idx3-ubyte.gz
-test_pyimagesearch/training_predict_holy/data/KMNIST/raw/train-labels-idx1-ubyte
-test_pyimagesearch/training_predict_holy/data/KMNIST/raw/train-labels-idx1-ubyte.gz
-test_pyimagesearch/training_predict_holy/output/model.pth
-test_pyimagesearch/training_predict_holy/output/plot.png
-test_pyimagesearch/training_predict_holy/pyimagesearch/__pycache__/__init__.cpython-38.pyc
-test_pyimagesearch/training_predict_holy/pyimagesearch/__pycache__/_internally_replaced_utils.cpython-38.pyc
-test_pyimagesearch/training_predict_holy/pyimagesearch/__pycache__/lenet.cpython-38.pyc
-test_pyimagesearch/training_predict_holy/pyimagesearch/__pycache__/shufflenetv2_pytorch.cpython-38.pyc
-test_pytorch_to_ncnn/resnet18.bin
-test_pytorch_to_ncnn/resnet18.onnx
-test_pytorch_to_ncnn/resnet18.param
-test_shufflenet_v2/model_ft_shufflenet_v2_x0_5.pth
-test_shufflenet_v2/model_ft_shufflenet_v2.pth
-test_shufflenet_v2/model_ft_weights_shufflenet_v2_x0_5.pth
-test_shufflenet_v2/model_ft_weights_shufflenet_v2.pth
-test_shufflenet_v2/model_shufflenet_v2_simplified.onnx
-test_shufflenet_v2/model_shufflenet_v2.onnx
-test_shufflenet_v2/shufflenet_v2_x0.5.pth
-test_shufflenet_v2/shufflenet_v2_x1_0.bin
-test_shufflenet_v2/shufflenet_v2_x1_0.param
-test_shufflenet_v2/__pycache__/shufflenet_v2.cpython-38.pyc
-test_shufflenet_v2/__pycache__/slim.cpython-38.pyc
-test_shufflenet_v2/best_model/best_model.pt
-test_shufflenet_v2/checkpoint/current_checkpoint.pt
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# pytorch model extensions
+*.pt
+*.pth
+
+# ncnn model extensions
+*.param
+*.bin
+
+# onnx model extensions
+*.onnx
+
+# image extensions
+*.png
+
+# dataset extensions
+*ubyte
+*.gz
+
+# Distribution / packaging
+.Python
 build/
-test_pyimagesearch/training_predict_holy/model_ft_shufflenet_v2.pth
-test_pyimagesearch/training_predict_holy/model_shufflenet_v2_simplified.onnx
-test_pyimagesearch/training_predict_holy/model_shufflenet_v2.onnx
-test_shufflenet_v2/model_ft_shufflenet_v2_0.914913.pth
-test_shufflenet_v2/model_ft_shufflenet_v2_0.928972.pth
-test_shufflenet_v2/model_ft_weights_shufflenet_v2_0.914913.pth
-test_shufflenet_v2/model_ft_weights_shufflenet_v2_0.928972.pth
-test_shufflenet_v2/best_model/best_model.pth
-test_shufflenet_v2/model_ft_shufflenet_v2_0.819899.pth
-test_shufflenet_v2/model_ft_shufflenet_v2_0.967259.pth
-test_shufflenet_v2/model_ft_shufflenet_v2_0.967892.pth
-test_shufflenet_v2/model_ft_weights_shufflenet_v2_0.819899.pth
-test_shufflenet_v2/model_ft_weights_shufflenet_v2_0.967259.pth
-test_shufflenet_v2/model_ft_shufflenet_v2_0.948184.pth
-test_shufflenet_v2/model_ft_shufflenet_v2_0.954261.pth
-test_shufflenet_v2/model_ft_weights_shufflenet_v2_0.954261.pth
-test_shufflenet_v2/plot.png
-test_shufflenet_v2/model_ft_shufflenet_v2_0.993530.pth
-test_shufflenet_v2/model_ft_weights_shufflenet_v2_0.993530.pth
-test_shufflenet_v2/model_ft_shufflenet_v2_1.pth
-test_shufflenet_v2/model_ft_weights_shufflenet_v2_1.pth
-test_shufflenet_v2/model_ft_shufflenet_v2_0.999539_v1.0.pth
-test_shufflenet_v2/model_ft_shufflenet_v2_0.999539_v1.1.pth
-test_shufflenet_v2/model_ft_shufflenet_v2_1_v1.0.pth
-test_shufflenet_v2/model_ft_shufflenet_v2_1_v1.1.pth
-test_shufflenet_v2/model_ft_weights_shufflenet_v2_0.999539_v1.0.pth
-test_shufflenet_v2/model_ft_weights_shufflenet_v2_0.999539_v1.1.pth
-test_shufflenet_v2/model_ft_weights_shufflenet_v2_1_v1.0.pth
-test_shufflenet_v2/plot_2109150956.png
-test_shufflenet_v2/plot_2109151056.png
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+#  Usually these files are written by a python script from a template
+#  before PyInstaller builds the exe, so as to inject date/other infos into it.
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff:
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Flask stuff:
+instance/
+.webassets-cache
+
+# Scrapy stuff:
+.scrapy
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+target/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# pyenv
+.python-version
+
+# pipenv
+#   According to pypa/pipenv#598, it is recommended to include Pipfile.lock in version control.
+#   However, in case of collaboration, if having platform-specific dependencies or dependencies
+#   having no cross-platform support, pipenv may install dependencies that don't work, or not
+#   install all needed dependencies.
+#Pipfile.lock
+
+# PEP 582; used by e.g. github.com/David-OConnor/pyflow
+__pypackages__/
+
+# Celery stuff
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+model_ft_shufflenet_v2.pth
+best_model/best_model.pt
+checkpoint/current_checkpoint.pt
+model_ft_shufflenet_v2_2109221751_0.99.pth
+model_ft_shufflenet_v2_2109221751_1.00.pth
+model_ft_shufflenet_v2_2109221751_ckp_0.99_simplified.onnx
+model_ft_shufflenet_v2_2109221751_ckp_0.99.onnx
+model_ft_shufflenet_v2_2109221751_ckp_0.99.pth
+model_ft_shufflenet_v2_2109221751_ckp_1.00_simplified.onnx
+model_ft_shufflenet_v2_2109221751_ckp_1.00.bin
+model_ft_shufflenet_v2_2109221751_ckp_1.00.onnx
+model_ft_shufflenet_v2_2109221751_ckp_1.00.param
+model_ft_shufflenet_v2_2109221751_ckp_1.00.pth
+model_ft_shufflenet_v2_2109221751.pth
+model_ft_weights_shufflenet_v2_2109221751.pth
+plot_2109221751.png
+best_model/best_model_2109221751.pt
+checkpoint/current_checkpoint_2109221751.pt
