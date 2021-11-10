@@ -550,11 +550,12 @@ if __name__ == "__main__":
         model_ft = torch.hub.load('pytorch/vision:v0.10.0', 'shufflenet_v2_x1_0', pretrained=False)
         
         num_ftrs = model_ft.fc.in_features
-        model_ft.fc = nn.Linear(num_ftrs, 2)
+        model_ft.fc = nn.Linear(num_ftrs, 1)
         
         model_ft = model_ft.to(device)
 
-        criterion = nn.CrossEntropyLoss()
+        # criterion = nn.CrossEntropyLoss()
+        criterion = nn.BCEWithLogitsLoss()
 
         # Observe that all parameters are being optimized
         # optimizer_ft = optim.SGD(model_ft.parameters(), lr=0.001, momentum=0.9)
