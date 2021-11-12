@@ -1,11 +1,12 @@
-# example: python eval_A_plus_shufflenet_v2.py --model_dir models_A_plus --head_layer 2
+# example: python eval_A_plus_shufflenet_v2_cv.py --model_dir models_A_plus --head_layer 2
 from sklearn.metrics import roc_curve, auc, precision_recall_curve
 from sklearn.manifold import TSNE
 from torchvision import transforms
 from torch.utils.data import DataLoader
 import torch
 # from dataset import MVTecAT
-from dataset import normal_mess_data_test # added by Holy 2111091500
+# from dataset import normal_mess_data_test # added by Holy 2111091500
+from dataset_cv import normal_mess_data_test # added by Holy 2111120810
 # from cutpaste import CutPaste
 # from cutpaste_A import CutPaste # added by Holy 2111091500
 from model_winding import ProjectionNet_winding
@@ -225,11 +226,19 @@ def eval_model(modelname, defect_type, device="cpu", save_plots=False, size=224,
     # TODO: cache is only nice during training. do we need it?
     if test_data_eval is None or cached_type != defect_type:
         cached_type = defect_type
-        test_transform = transforms.Compose([])
-        test_transform.transforms.append(transforms.Resize((size,size)))
-        test_transform.transforms.append(transforms.ToTensor())
-        test_transform.transforms.append(transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                                            std=[0.229, 0.224, 0.225]))
+        # test_transform = transforms.Compose([])
+        # test_transform.transforms.append(transforms.Resize((size,size)))
+        # test_transform.transforms.append(transforms.ToTensor())
+        # test_transform.transforms.append(transforms.Normalize(mean=[0.485, 0.456, 0.406],
+        #                                                     std=[0.229, 0.224, 0.225]))
+
+        # added by Holy 2111120810
+        test_transform = A.Compose([A.Resize(size, size),
+                                    A.Normalize(mean=(0.485, 0.456, 0.406), std=(
+                                        0.229, 0.224, 0.225)),
+                                    ToTensorV2()])
+        # end of addition 2111120810
+
         # test_data_eval = MVTecAT("Data", defect_type, size, transform = test_transform, mode="test")
         # test_data_eval = MVTecAT("d:/temp/mvtec_anomaly_detection", defect_type, size, transform = test_transform, mode="test") # added by Holy 2111020810
         test_data_eval = normal_mess_data_test("e:/dnn_data/ZTC950V763_data", defect_type, size, transform = test_transform, mode="test") # added by Holy 2111091500
@@ -407,7 +416,7 @@ def eval_model(modelname, defect_type, device="cpu", save_plots=False, size=224,
     img_size = (224, 224)
     test_path = 'd:/data_seq/gongqiWinding/ZTC950V763/211021/shrinkVideo/bigDatasets/testValidateCV'
     # test_path = 'd:/data_seq/gongqiWinding/ZTC950V763/211021/shrinkVideo/bigDatasets/test'
-    dF1, tp, fp, fn1, prec, rec, acc, total_frames_num = compute_f1_pil(model, test_path, img_size, best_threshold, density)
+    dF1, tp, fp, fn1, prec, rec, acc, total_frames_num = compute_f1(model, test_path, img_size, best_threshold, density)
     print(f'test results: f1:{dF1}, tp:{tp}, fp:{fp}, fn:{fn1}, prec:{prec}, rec:{rec}, acc:{acc}, total frames:{total_frames_num}')
     print('best_F1_Score: ', best_F1_Score)
     # end of addition 2111110810

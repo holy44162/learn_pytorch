@@ -1,4 +1,4 @@
-# example: python run_training_A_plus_shufflenet_v2.py --model_dir models_A_plus --head_layer 2 --cuda 1 --epochs 100
+# example: python run_training_A_plus_shufflenet_v2_cv.py --model_dir models_A_plus --head_layer 2 --cuda 1 --epochs 100 --optim adam
 # head dims:512,512,512,512,512,512,512,512,128
 # code is basicly:https://github.com/google-research/deep_representation_one_class
 from pathlib import Path
@@ -18,8 +18,8 @@ from torchvision import transforms
 # from dataset import MVTecAT_A, Repeat # added by Holy 2111090810
 # from dataset import MVTecAT_B, Repeat # added by Holy 2111090810
 # from dataset import MVTecAT_C, Repeat # added by Holy 2111090810
-from dataset import normal_mess_data, Repeat # added by Holy 2111090810
-from cutpaste_A import CutPasteNormal,CutPasteScar, CutPaste3Way, CutPasteUnion, cut_paste_collate_fn
+from dataset_cv import normal_mess_data, Repeat # added by Holy 2111090810
+from cutpaste_A_cv import CutPasteNormal,CutPasteScar, CutPaste3Way, CutPasteUnion, cut_paste_collate_fn
 from model_winding import ProjectionNet_winding
 # from eval import eval_model
 from eval_shufflenet_v2 import eval_model # added by Holy 2111091500

@@ -2,6 +2,7 @@
 __pycache__/
 *.py[cod]
 *$py.class
+*.npy
 
 # C extensions
 *.so
@@ -9,6 +10,7 @@ __pycache__/
 # pytorch model extensions
 *.pt
 *.pth
+*.tch
 
 # ncnn model extensions
 *.param
@@ -163,3 +165,6 @@ model_ft_weights_shufflenet_v2_2109221751.pth
 plot_2109221751.png
 best_model/best_model_2109221751.pt
 checkpoint/current_checkpoint_2109221751.pt
+eval_A_plus/
+models_A_plus/
+logdirs_A_plus/

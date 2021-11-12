@@ -114,6 +114,19 @@
                 "--head_layer",
                 "2"
             ]
+        },
+        {
+            "name": "Python: eval_A_plus_shufflenet_v2.py",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/test_cutpaste/eval_A_plus_shufflenet_v2.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--model_dir",
+                "${workspaceFolder}/test_cutpaste/models_A_plus",
+                "--head_layer",
+                "2"
+            ]
         }
     ]
 }
