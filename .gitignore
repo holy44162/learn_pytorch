@@ -168,3 +168,6 @@ checkpoint/current_checkpoint_2109221751.pt
 eval_A_plus/
 models_A_plus/
 logdirs_A_plus/
+test_cutpaste/data_inv_cov.txt
+test_cutpaste/data_mean.txt
+test_cutpaste/data.txt

@@ -19,6 +19,368 @@ import cv2
 from torchvision.datasets.folder import *
 import glob
 
+# added by Holy 2111121500
+from torch.utils.data import Dataset
+from pathlib import Path
+import imutils
+import random
+import math
+
+class CutPaste(object):
+    """Base class for both cutpaste variants with common operations"""
+    def __init__(self, colorJitter=0.1, transform=None):
+        self.transform = transform
+        
+        if colorJitter is None:
+            self.colorJitter = None
+        else:
+            # self.colorJitter = transforms.ColorJitter(brightness = colorJitter,
+            #                                           contrast = colorJitter,
+            #                                           saturation = colorJitter,
+            #                                           hue = colorJitter)
+            self.colorJitter = A.ColorJitter(brightness = colorJitter,
+                                                      contrast = colorJitter,
+                                                      saturation = colorJitter,
+                                                      hue = colorJitter,
+                                                      p = 1)
+    def __call__(self, org_img, img):
+        # apply transforms to both images
+        if self.transform:
+            # img = self.transform(img)
+            # org_img = self.transform(org_img)
+            # added by Holy 2111090810
+            # img = numpy.array(img).astype('float32')
+            img = self.transform(image=img)['image']
+            # img = Image.fromarray(img)
+
+            # org_img = numpy.array(org_img).astype('float32')
+            org_img = self.transform(image=org_img)['image']
+            # org_img = Image.fromarray(org_img)
+            # end of addition 2111090810
+        return org_img, img
+    
+class CutPasteNormal(CutPaste):
+    """Randomly copy one patche from the image and paste it somewere else.
+    Args:
+        area_ratio (list): list with 2 floats for maximum and minimum area to cut out
+        aspect_ratio (float): minimum area ration. Ration is sampled between aspect_ratio and 1/aspect_ratio.
+    """
+    def __init__(self, area_ratio=[0.02,0.15], aspect_ratio=0.3, **kwags):
+        super(CutPasteNormal, self).__init__(**kwags)
+        self.area_ratio = area_ratio
+        self.aspect_ratio = aspect_ratio
+
+    def __call__(self, img):
+        #TODO: we might want to use the pytorch implementation to calculate the patches from https://pytorch.org/vision/stable/_modules/torchvision/transforms/transforms.html#RandomErasing
+        # h = img.size[0]
+        # w = img.size[1]
+        h, w = img.shape[:2] # added by Holy 2111120810
+        
+        # ratio between area_ratio[0] and area_ratio[1]
+        ratio_area = random.uniform(self.area_ratio[0], self.area_ratio[1]) * w * h
+        
+        # sample in log space
+        log_ratio = torch.log(torch.tensor((self.aspect_ratio, 1/self.aspect_ratio)))
+        aspect = torch.exp(
+            torch.empty(1).uniform_(log_ratio[0], log_ratio[1])
+        ).item()
+        
+        cut_w = int(round(math.sqrt(ratio_area * aspect)))
+        cut_h = int(round(math.sqrt(ratio_area / aspect)))
+        
+        # one might also want to sample from other images. currently we only sample from the image itself
+        from_location_h = int(random.uniform(0, h - cut_h))
+        from_location_w = int(random.uniform(0, w - cut_w))
+        
+        # box = [from_location_w, from_location_h, from_location_w + cut_w, from_location_h + cut_h]
+        # patch = img.crop(box)
+        patch = img[from_location_h:from_location_h + cut_h, from_location_w:from_location_w + cut_w] # roi = image[startY:endY, startX:endX] added by Holy 2111120810
+        
+        if self.colorJitter:
+            # patch = self.colorJitter(patch)
+            patch = self.colorJitter(image=patch)['image'] # added by Holy 2111120810
+        
+        to_location_h = int(random.uniform(0, h - cut_h))
+        to_location_w = int(random.uniform(0, w - cut_w))
+        
+        # insert_box = [to_location_w, to_location_h, to_location_w + cut_w, to_location_h + cut_h]
+        augmented = img.copy()
+        # augmented.paste(patch, insert_box)
+        
+        augmented[to_location_h:to_location_h + cut_h,to_location_w:to_location_w + cut_w] = patch # large_img[y_offset:y_end,x_offset:x_end] = small_img added by Holy 2111120810
+        
+        return super().__call__(img, augmented)
+
+class CutPasteScar(CutPaste):
+    """Randomly copy one patche from the image and paste it somewere else.
+    Args:
+        width (list): width to sample from. List of [min, max]
+        height (list): height to sample from. List of [min, max]
+        rotation (list): rotation to sample from. List of [min, max]
+    """
+    def __init__(self, width=[2,16], height=[10,25], rotation=[-45,45], **kwags):
+        super(CutPasteScar, self).__init__(**kwags)
+        self.width = width
+        self.height = height
+        self.rotation = rotation
+    
+    def __call__(self, img):
+        # h = img.size[0]
+        # w = img.size[1]
+        h, w = img.shape[:2] # added by Holy 2111120810
+        
+        # cut region
+        # cut_w = random.uniform(*self.width)
+        # cut_h = random.uniform(*self.height)
+
+        # added by Holy 2111120810
+        cut_w = int(random.uniform(*self.width))
+        cut_h = int(random.uniform(*self.height))
+        # end of addition 2111120810
+        
+        from_location_h = int(random.uniform(0, h - cut_h))
+        from_location_w = int(random.uniform(0, w - cut_w))
+        
+        # box = [from_location_w, from_location_h, from_location_w + cut_w, from_location_h + cut_h]
+        # patch = img.crop(box)
+        patch = img[from_location_h:from_location_h + cut_h, from_location_w:from_location_w + cut_w] # roi = image[startY:endY, startX:endX] added by Holy 2111120810
+        
+        if self.colorJitter:
+            # patch = self.colorJitter(patch)
+            patch = self.colorJitter(image=patch)['image'] # added by Holy 2111120810
+
+        # rotate
+        rot_deg = random.uniform(*self.rotation)
+        # patch = Image.fromarray(patch) # added by Holy 2111120810
+        # patch = patch.convert("RGBA").rotate(rot_deg,expand=True)
+
+        # added by Holy 2111120810
+        patch = cv2.cvtColor(patch, cv2.COLOR_RGB2RGBA)
+        patch = imutils.rotate_bound(patch, -1*rot_deg)
+        # end of addition 2111120810
+        
+        #paste
+        # to_location_h = int(random.uniform(0, h - patch.size[0]))
+        # to_location_w = int(random.uniform(0, w - patch.size[1]))
+
+        # added by Holy 2111120810
+        to_location_h = int(random.uniform(0, h - patch.shape[0]))
+        to_location_w = int(random.uniform(0, w - patch.shape[1]))
+        # end of addition 2111120810
+
+        # mask = patch.split()[-1]
+        # patch = patch.convert("RGB")
+        
+        # augmented = img.copy()
+        # augmented = Image.fromarray(augmented) # added by Holy 2111120810
+        # augmented.paste(patch, (to_location_w, to_location_h), mask=mask)
+        # augmented = numpy.array(augmented) # added by Holy 2111120810
+
+        # added by Holy 2111120810
+        mask = patch[:,:,-1]
+        augmented = img.copy()
+        for j in range(mask.shape[0]):
+            for k in range(mask.shape[1]):
+                if mask[j,k] == 255:
+                    augmented[j+to_location_h,k+to_location_w,0] = patch[j,k,0]
+                    augmented[j+to_location_h,k+to_location_w,1] = patch[j,k,1]
+                    augmented[j+to_location_h,k+to_location_w,2] = patch[j,k,2]
+        # end of addition 2111120810
+        
+        return super().__call__(img, augmented)
+    
+class CutPasteUnion(object):
+    def __init__(self, **kwags):
+        self.normal = CutPasteNormal(**kwags)
+        self.scar = CutPasteScar(**kwags)
+    
+    def __call__(self, img):
+        r = random.uniform(0, 1)
+        if r < 0.5:
+            return self.normal(img)
+        else:
+            return self.scar(img)
+
+class CutPaste3Way(object):
+    def __init__(self, **kwags):
+        self.normal = CutPasteNormal(**kwags)
+        self.scar = CutPasteScar(**kwags)
+    
+    def __call__(self, img):
+        org, cutpaste_normal = self.normal(img)
+        _, cutpaste_scar = self.scar(img)
+        
+        return org, cutpaste_normal, cutpaste_scar
+
+class normal_mess_data(Dataset):
+    """normal mess dataset."""
+
+    def __init__(self, root_dir, transform=None, mode="train"):
+        """
+        Args:
+            root_dir (string): Directory with the dataset.
+            transform: Transform to apply to data
+            mode: "train" loads training samples "test" test samples default "train"
+        """
+        self.root_dir = Path(root_dir)
+        self.transform = transform
+        self.mode = mode
+        
+        # find test images
+        if self.mode == "train":
+            # self.image_names = list((self.root_dir / defect_name / "train" / "good").glob("*.png"))
+            self.image_names = list((self.root_dir / "train" / "normal").glob("*.*")) # tested by Holy 2111020810
+            # print("loading images")
+            # during training we cache the smaller images for performance reasons (not a good coding style)
+            #self.imgs = [Image.open(file).resize((size,size)).convert("RGB") for file in self.image_names]
+            # self.imgs = Parallel(n_jobs=10)(delayed(lambda file: Image.open(file).resize((size,size)).convert("RGB"))(file) for file in self.image_names)
+            # self.imgs = Parallel(n_jobs=10)(delayed(read_and_resize)(file,size) for file in self.image_names) # added by Holy 2111120810
+            # print(f"loaded {len(self.imgs)} images")
+        else:
+            #test mode
+            # self.image_names = list((self.root_dir / defect_name / "test").glob(str(Path("*") / "*.png")))
+            self.image_names = list((self.root_dir / "val").glob(str(Path("*") / "*.*"))) # tested by Holy 2111020810
+            
+    def __len__(self):
+        return len(self.image_names)
+
+    def __getitem__(self, idx):
+        if self.mode == "train":
+            filename = self.image_names[idx]
+            img = cv2.imread(filename.__str__())
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+            if self.transform is not None:
+                # img = self.transform(img)
+                # added by Holy 2111090810
+                # img = numpy.array(img)
+                img = self.transform[0](image=img)['image']
+                # img = Image.fromarray(img)
+                img = self.transform[1](img)
+                # end of addition 2111090810
+            return img
+        else:
+            filename = self.image_names[idx]
+            label = filename.parts[-2]
+            # img = Image.open(filename)
+            # img = img.resize((self.size,self.size)).convert("RGB")
+
+            # added by Holy 2111120810
+            img = cv2.imread(filename.__str__())
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+            # end of addition 2111120810
+
+            if self.transform is not None:
+                # img = self.transform(img)
+                img = self.transform(image=img)['image'] # added by Holy 2111120810
+            return img, label != "normal"
+
+class normal_mess_data_test(Dataset):
+    """normal mess dataset."""
+
+    def __init__(self, root_dir, transform=None, mode="train"):
+        """
+        Args:
+            root_dir (string): Directory with the dataset.
+            transform: Transform to apply to data
+            mode: "train" loads training samples "test" test samples default "train"
+        """
+        self.root_dir = Path(root_dir)
+        self.transform = transform
+        self.mode = mode
+        
+        # find test images
+        if self.mode == "train":
+            # self.image_names = list((self.root_dir / defect_name / "train" / "good").glob("*.png"))
+            self.image_names = list((self.root_dir / "train" / "normal").glob("*.*")) # tested by Holy 2111020810
+            # print("loading images")
+            # during training we cache the smaller images for performance reasons (not a good coding style)
+            #self.imgs = [Image.open(file).resize((size,size)).convert("RGB") for file in self.image_names]
+            # self.imgs = Parallel(n_jobs=10)(delayed(lambda file: Image.open(file).resize((size,size)).convert("RGB"))(file) for file in self.image_names)
+            # self.imgs = Parallel(n_jobs=10)(delayed(read_and_resize)(file,size) for file in self.image_names) # added by Holy 2111120810
+            # print(f"loaded {len(self.imgs)} images")
+        else:
+            #test mode
+            # self.image_names = list((self.root_dir / defect_name / "test").glob(str(Path("*") / "*.png")))
+            self.image_names = list((self.root_dir / "val").glob(str(Path("*") / "*.*"))) # tested by Holy 2111020810
+            
+    def __len__(self):
+        return len(self.image_names)
+
+    def __getitem__(self, idx):
+        if self.mode == "train":
+            filename = self.image_names[idx]
+            img = cv2.imread(filename.__str__())
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+            if self.transform is not None:
+                # img = self.transform(img)
+                img = self.transform(image=img)['image'] # added by Holy 2111120810
+            return img
+        else:
+            filename = self.image_names[idx]
+            label = filename.parts[-2]
+            # img = Image.open(filename)
+            # img = img.resize((self.size,self.size)).convert("RGB")
+
+            # added by Holy 2111120810
+            img = cv2.imread(filename.__str__())
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+            # end of addition 2111120810
+
+            if self.transform is not None:
+                # img = self.transform(img)
+                img = self.transform(image=img)['image'] # added by Holy 2111120810
+            return img, label != "normal"
+# end of addition 2111121500
+
+# added by Holy 2111161500
+class normal_data(Dataset):
+    """normal dataset."""
+
+    def __init__(self, root_dir, transform=None, mode="train"):
+        """
+        Args:
+            root_dir (string): Directory with the dataset.
+            transform: Transform to apply to data
+            mode: "train" loads training samples "test" test samples default "train"
+        """
+        self.root_dir = Path(root_dir)
+        self.transform = transform
+        self.mode = mode
+        
+        # find test images
+        if self.mode == "train":
+            # self.image_names = list((self.root_dir / defect_name / "train" / "good").glob("*.png"))
+            self.image_names = list((self.root_dir / "train" / "normal").glob("*.*")) # tested by Holy 2111020810
+            # print("loading images")
+            # during training we cache the smaller images for performance reasons (not a good coding style)
+            #self.imgs = [Image.open(file).resize((size,size)).convert("RGB") for file in self.image_names]
+            # self.imgs = Parallel(n_jobs=10)(delayed(lambda file: Image.open(file).resize((size,size)).convert("RGB"))(file) for file in self.image_names)
+            # self.imgs = Parallel(n_jobs=10)(delayed(read_and_resize)(file,size) for file in self.image_names) # added by Holy 2111120810
+            # print(f"loaded {len(self.imgs)} images")
+        else:
+            #test mode
+            # self.image_names = list((self.root_dir / defect_name / "test").glob(str(Path("*") / "*.png")))
+            # self.image_names = list((self.root_dir / "val").glob(str(Path("*") / "*.*"))) # tested by Holy 2111020810
+            self.image_names = list((self.root_dir / "val" / "normal").glob("*.*"))
+            
+    def __len__(self):
+        return len(self.image_names)
+
+    def __getitem__(self, idx):        
+        filename = self.image_names[idx]
+        img = cv2.imread(filename.__str__())
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        if self.transform is not None:
+            # img = self.transform(img)
+            # added by Holy 2111090810
+            # img = numpy.array(img)
+            img = self.transform[0](image=img)['image']
+            # img = Image.fromarray(img)
+            img = self.transform[1](img)
+            # end of addition 2111090810
+        return img        
+# end of addition 2111161500
+
 # added by Holy 2111111500
 class ProjectionNet_winding(nn.Module):
     def __init__(self, pretrained=True, head_layers=[512,512,512,512,512,512,512,512,128], num_classes=2):
@@ -57,8 +419,8 @@ class ProjectionNet_winding(nn.Module):
         logits = self.out(tmp)
         return embeds, logits
     
-    def freeze_resnet(self):
-        # freez full resnet18
+    def freeze_shufflenet(self):
+        # freeze full shufflenet
         # for param in self.resnet18.parameters():
         for param in self.shufflenet_v2.parameters():
             param.requires_grad = False
@@ -130,7 +492,14 @@ def train_model(model, criterion, optimizer, scheduler, start_epochs, n_epochs, 
     break_num_threshold = 1 
 
     # for epoch in range(num_epochs):
-    for epoch in range(start_epochs, n_epochs+1): 
+    for epoch in range(start_epochs, n_epochs+1):
+        # added by Holy 2111151500
+        if epoch-start_epochs == 20:
+            model.unfreeze()
+        # end of addition 2111151500
+
+        batch_embeds = [] # added by Holy 2111161500
+
         # initialize variables to monitor training and validation loss
         valid_loss = 0.0        
         train_loss = 0.0
@@ -153,11 +522,30 @@ def train_model(model, criterion, optimizer, scheduler, start_epochs, n_epochs, 
 
                 # Iterate over data.
                 # for inputs, labels in dataloaders[phase]:
-                for inputs, labels in tepoch:
-                    tepoch.set_description(f"Epoch {epoch}") 
+                # for inputs, labels in tepoch:
+                for inputs in tepoch: # inputs(train): (3*128*3*224*224), inputs[0](val): (128*3*224*224), inputs[1](val): 128 added by Holy 2111130954
+                    tepoch.set_description(f"Epoch {epoch}")
 
-                    inputs = inputs.to(device)
-                    labels = labels.to(device)
+                    # added by Holy 2111151500
+                    # if phase == 'train':
+                    #     labels = torch.arange(len(inputs), device=device)
+                    #     labels = labels.repeat_interleave(inputs[0].size(0))
+                    #     inputs = torch.cat((inputs[0],inputs[1],inputs[2])).to(device)
+                    # else:                        
+                    #     labels = inputs[1].to(device)
+                    #     inputs = inputs[0].to(device)
+                    # end of addition 2111151500
+
+                    # added by Holy 2111161500
+                    labels = torch.arange(len(inputs), device=device)
+                    labels = labels.repeat_interleave(inputs[0].size(0))
+                    inputs = torch.cat((inputs[0],inputs[1],inputs[2])).to(device)
+                    # end of addition 2111161500
+
+                    # hided by Holy 2111151500
+                    # inputs = inputs.to(device)
+                    # labels = labels.to(device)
+                    # end of hide 2111151500
 
                     # zero the parameter gradients
                     optimizer.zero_grad()
@@ -165,14 +553,20 @@ def train_model(model, criterion, optimizer, scheduler, start_epochs, n_epochs, 
                     # forward
                     # track history if only in train
                     with torch.set_grad_enabled(phase == 'train'):
-                        outputs = model(inputs)
-                        _, preds = torch.max(outputs, 1)
-                        loss = criterion(outputs, labels)                        
+                        # outputs = model(inputs)
+                        # _, preds = torch.max(outputs, 1)
+                        embeds, outputs = model(inputs) # added by Holy 2111151500
+                        preds = torch.argmax(outputs,axis=1) # added by Holy 2111161500
+
+                        loss = criterion(outputs, labels)
 
                         # backward + optimize only if in training phase
                         if phase == 'train':
                             loss.backward()
                             optimizer.step()
+
+                            # save embed for validation
+                            batch_embeds.append(embeds.cpu().detach()) # added by Holy 2111161500
 
                     # statistics
                     running_loss += loss.item() * inputs.size(0)
@@ -251,7 +645,7 @@ def train_model(model, criterion, optimizer, scheduler, start_epochs, n_epochs, 
     plt.xlabel("Epoch #")
     plt.ylabel("Loss/Accuracy")
     plt.legend(loc="lower left")
-    plt.savefig('plot_2110280926.png')    
+    plt.savefig('plot.png')    
 
     # load best model weights
     model.load_state_dict(best_model_wts)
@@ -289,10 +683,17 @@ class NormalVsMessFolder(DatasetFolder):
 if __name__ == "__main__":
     INIT_LR = 1e-3
     BATCH_SIZE = 2**7    
-    EPOCHS = 100
+    EPOCHS = 3
     STEP_SIZE = 7
     GAMMA = 0.1
     
+    # added by Holy 2111121500
+    after_cutpaste_transform_A = A.Compose([A.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+                                            ToTensorV2()])
+    train_transform_B2 = CutPaste3Way(transform = after_cutpaste_transform_A)
+    num_classes = 3
+    # end of addition 2111121500
+
     data_transforms = {
         'train': A.Compose([
             A.Resize(224, 224),
@@ -329,13 +730,11 @@ if __name__ == "__main__":
                 A.RandomGridShuffle(),
                 A.ShiftScaleRotate(),
                 A.VerticalFlip(),
-                ], p=1),
-            A.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-            ToTensorV2(),
+            ], p=1)
         ]),
         'val': A.Compose([
             A.Resize(224, 224),
-            A.OneOf([            
+            A.OneOf([
                 A.HorizontalFlip(),
                 A.Blur(),
                 A.CLAHE(),
@@ -368,34 +767,74 @@ if __name__ == "__main__":
                 A.RandomGridShuffle(),
                 A.ShiftScaleRotate(),
                 A.VerticalFlip(),
-                ], p=1),
-            A.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-            ToTensorV2(),        
+            ], p=1)
         ])
-    } 
-    data_dir = 'e:/dnn_data/winding_data' 
+    }
     
-    image_datasets = {x: NormalVsMessFolder(os.path.join(data_dir, x),
-                                              data_transforms[x])
-                      for x in ['train', 'val']} 
+    data_dir = 'e:/dnn_data/ZTC950V763_data'
+    
+    # image_datasets = {x: NormalVsMessFolder(os.path.join(data_dir, x),
+    #                                           data_transforms[x])
+    #                   for x in ['train', 'val']} 
+    # dataloaders = {x: torch.utils.data.DataLoader(image_datasets[x], batch_size=BATCH_SIZE,
+    #                                               shuffle=True, num_workers=4)
+    #                for x in ['train', 'val']}
+    # dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'val']}
+    # class_names = image_datasets['train'].classes
+
+    # added by Holy 2111121500
+    # train_data = normal_mess_data(data_dir, transform = [data_transforms['train'], train_transform_B2])
+    # # 4640*3*3*224*224
+    # test_data = normal_mess_data_test(data_dir, transform = data_transforms['val'], mode="test")
+    # # 2593*2: part 1: 3*224*224, part 2: bool
+    # image_datasets = {
+    #     'train': train_data,
+    #     'val': test_data}
+    
+    # added by Holy 2111161500
+    image_datasets = {x: normal_data(data_dir, transform = [data_transforms[x], train_transform_B2], mode=x)
+                      for x in ['train', 'val']}
+    # end of addition 2111161500
+
     dataloaders = {x: torch.utils.data.DataLoader(image_datasets[x], batch_size=BATCH_SIZE,
                                                   shuffle=True, num_workers=4)
                    for x in ['train', 'val']}
-    dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'val']}
-    class_names = image_datasets['train'].classes
-    
+    # dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'val']}
+    dataset_sizes = {x: num_classes*len(image_datasets[x]) for x in ['train', 'val']} # added by Holy 2111161500
+
+    # tested by Holy 2111130954
+    # for i_batch, sample_batched in enumerate(dataloaders['train']):
+    #     print('i_batch: ', i_batch)
+    #     print('sample_batched length: (3)', len(sample_batched))
+    #     print(f'sample_batched[0] size: ({BATCH_SIZE}x3x224x224)', sample_batched[0].size())
+    #     print(f'sample_batched[1] size: ({BATCH_SIZE}x3x224x224)', sample_batched[1].size())
+    #     print(f'sample_batched[2] size: ({BATCH_SIZE}x3x224x224)', sample_batched[2].size())
+    #     break
+    # end of test 2111130954
+    # end of addition 2111121500
+
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     
-    pytorch_vision_version = 'pytorch/vision:v0.10.0'
-    shufflenet_version = 'shufflenet_v2_x1_0'
-    model_ft = torch.hub.load(pytorch_vision_version, shufflenet_version, pretrained=True) 
+    # hided by Holy 2111130954
+    # pytorch_vision_version = 'pytorch/vision:v0.10.0'
+    # shufflenet_version = 'shufflenet_v2_x1_0'
+    # model_ft = torch.hub.load(pytorch_vision_version, shufflenet_version, pretrained=True) 
     
-    num_ftrs = model_ft.fc.in_features
-    # Here the size of each output sample is set to 2.
-    # Alternatively, it can be generalized to nn.Linear(num_ftrs, len(class_names)).
-    model_ft.fc = nn.Linear(num_ftrs, 2)        
+    # num_ftrs = model_ft.fc.in_features
+    # # Here the size of each output sample is set to 2.
+    # # Alternatively, it can be generalized to nn.Linear(num_ftrs, len(class_names)).
+    # model_ft.fc = nn.Linear(num_ftrs, 2)
+    # hided by Holy 2111130954
+
+    # added by Holy 2111130954
+    head_layer = 2
+    head_layers = [512]*head_layer+[128]
+    model_ft = ProjectionNet_winding(pretrained=True, head_layers=head_layers, num_classes=num_classes)
+    # end of addition 2111130954
 
     model_ft = model_ft.to(device)
+
+    model_ft.freeze_shufflenet() # added by Holy 2111130954
 
     criterion = nn.CrossEntropyLoss()
 
@@ -407,14 +846,28 @@ if __name__ == "__main__":
         
     start_epochs = 1
     end_epochs = start_epochs + EPOCHS
-    checkpoint_path = './checkpoint/current_checkpoint_2110280926.pt'
-    best_model_path = './best_model/best_model_2110280926.pt'
+    checkpoint_path = './checkpoint/current_checkpoint.pt'
+    best_model_path = './best_model/best_model.pt'
+
+    # added by Holy 2111161500
+    if not os.path.exists(os.path.dirname(checkpoint_path)):
+        os.mkdir(os.path.dirname(checkpoint_path))
+    if not os.path.exists(os.path.dirname(best_model_path)):
+        os.mkdir(os.path.dirname(best_model_path))
+    # end of addition 2111161500
+
     resume_training = True
     if resume_training:        
-        model_ft = torch.hub.load(pytorch_vision_version, shufflenet_version, pretrained=False)
+        # model_ft = torch.hub.load(pytorch_vision_version, shufflenet_version, pretrained=False)
         
-        num_ftrs = model_ft.fc.in_features
-        model_ft.fc = nn.Linear(num_ftrs, 2)
+        # num_ftrs = model_ft.fc.in_features
+        # model_ft.fc = nn.Linear(num_ftrs, 2)
+
+        # added by Holy 2111170810
+        head_layer = 2
+        head_layers = [512]*head_layer+[128]
+        model_ft = ProjectionNet_winding(pretrained=False, head_layers=head_layers, num_classes=num_classes)
+        # end of addition 2111170810
         
         model_ft = model_ft.to(device)
 
@@ -459,9 +912,9 @@ if __name__ == "__main__":
                            start_epochs, end_epochs, np.Inf, checkpoint_path, best_model_path)    
     
     # save model_ft
-    torch.save(model_ft.state_dict(), 'model_ft_weights_shufflenet_v2_2110280926.pth')
+    torch.save(model_ft.state_dict(), 'model_ft_weights_shufflenet_v2.pth')
         
     model_ft.eval()
 
     # Saving Model_ft with Shapes
-    torch.save(model_ft, 'model_ft_shufflenet_v2_2110280926.pth')
+    torch.save(model_ft, 'model_ft_shufflenet_v2.pth')

@@ -103,6 +103,23 @@
             ]
         },
         {
+            "name": "Python: run_training_A_plus_shufflenet_v2_cv.py",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/test_cutpaste/run_training_A_plus_shufflenet_v2_cv.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--model_dir",
+                "${workspaceFolder}/test_cutpaste/models_A_plus",
+                "--head_layer",
+                "2",
+                "--cuda",
+                "1",
+                "--epochs",
+                "2"
+            ]
+        },
+        {
             "name": "Python: eval_shufflenet_v2.py",
             "type": "python",
             "request": "launch",
@@ -127,6 +144,27 @@
                 "--head_layer",
                 "2"
             ]
+        },
+        {
+            "name": "Python: first_oc_classify___.py",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/test_cutpaste/first_oc_classify_by_transfer_learning_shufflenet_v2_augmentation.py",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Python: second_find_best_model_oc.py",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/test_cutpaste/second_find_best_model_oc.py",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Python: test_numpy_c.py",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/test_cutpaste/test_numpy_c.py",
+            "console": "integratedTerminal"
         }
     ]
 }

@@ -239,6 +239,50 @@ def eval_model(modelname, defect_type, device="cpu", save_plots=False, size=224,
                                     ToTensorV2()])
         # end of addition 2111120810
 
+        # added by Holy 2111121500
+        # test_transform = A.Compose([
+        #     A.Resize(size, size),
+        #     A.OneOf([
+        #         A.HorizontalFlip(),
+        #         A.Blur(),
+        #         A.CLAHE(),
+        #         A.ColorJitter(brightness=0.1, contrast=0.1,
+        #                       saturation=0.1, hue=0.1),
+        #         A.Emboss(),
+        #         A.Equalize(),
+        #         A.FancyPCA(),
+        #         A.GaussNoise(),
+        #         A.GaussianBlur(),
+        #         A.HueSaturationValue(),
+        #         A.ISONoise(),
+        #         A.ImageCompression(),
+        #         A.MedianBlur(),
+        #         A.MotionBlur(),
+        #         A.MultiplicativeNoise(),
+        #         A.Posterize(),
+        #         A.RGBShift(),
+        #         A.RandomBrightnessContrast(),
+        #         A.RandomFog(),
+        #         A.RandomGamma(),
+        #         A.RandomRain(),
+        #         A.RandomShadow(),
+        #         A.RandomSnow(),
+        #         A.RandomSunFlare(),
+        #         A.RandomToneCurve(),
+        #         A.Sharpen(),
+        #         A.CoarseDropout(),
+        #         A.Flip(),
+        #         A.Perspective(),
+        #         A.RandomGridShuffle(),
+        #         A.ShiftScaleRotate(),
+        #         A.VerticalFlip(),
+        #     ], p=1),
+        #     A.Normalize(mean=(0.485, 0.456, 0.406), std=(
+        #         0.229, 0.224, 0.225)),
+        #     ToTensorV2()
+        # ])
+        # end of addition 2111121500
+
         # test_data_eval = MVTecAT("Data", defect_type, size, transform = test_transform, mode="test")
         # test_data_eval = MVTecAT("d:/temp/mvtec_anomaly_detection", defect_type, size, transform = test_transform, mode="test") # added by Holy 2111020810
         test_data_eval = normal_mess_data_test("e:/dnn_data/ZTC950V763_data", defect_type, size, transform = test_transform, mode="test") # added by Holy 2111091500
