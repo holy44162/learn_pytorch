@@ -126,6 +126,34 @@ int main(int argc, char *argv[])
     cout << "data_vector_mean[0]: " << data_vector_mean[0] << endl;
     cout << "data_vector_mean[100]: " << data_vector_mean[100] << endl;
 
+    // read best threshold
+    txtPath = "d:/backup/project/learn_pytorch/test_cutpaste/data_threshold.txt";
+
+    ifstream in_file_threshold;
+    in_file_threshold.open(txtPath);
+
+    float data_threshold;
+
+    if (in_file_threshold)
+    {
+        string line_threshold;        
+
+        for (int i = 0; i < 1; ++i)
+        {
+            getline(in_file_threshold, line_threshold);
+            istringstream iss(line_threshold);
+            iss >> data_threshold;            
+        }
+        in_file_threshold.close();
+        in_file_threshold.clear();
+    }
+    else
+    {
+        throw runtime_error("document error");
+    }
+
+    cout << "best threshold: " << data_threshold << endl;
+
     // calculate mahalanobis distance
     Mat Pt(2, 5, CV_64FC1);
 	Pt.at<double>(0, 0) = 2;
@@ -167,6 +195,7 @@ int main(int argc, char *argv[])
 
     vector<float> data_vector_sample(1024, 10.);
     data_vector_sample[6] = 7.;
+    data_vector_sample[7] = 6.;
 
     Mat mat_data_vector_sample(1, 1024, CV_32FC1, (float *)data_vector_sample.data());
     cout << "mat_data_vector_sample(0,6): " << mat_data_vector_sample.at<float>(0,6) << endl;

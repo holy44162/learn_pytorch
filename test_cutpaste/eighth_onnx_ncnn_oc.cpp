@@ -65,10 +65,33 @@ int classify_wuSNet(const cv::Mat& bgr, std::vector<float>& cls_scores , string 
     return 0;
 }
 
-static int print_topk(const std::vector<float>& cls_scores, int topk)
+static int print_topk(const std::vector<float>& cls_scores, vector<float> data_vector, vector<float> data_vector_mean, float data_threshold)
 {
     // partial sort topk with index
     int size = cls_scores.size();
+
+    // added by Holy 2111201500
+    vector<float> normalizedData_l2;
+    normalize(cls_scores, normalizedData_l2, 1.0, 0.0, NORM_L2);
+
+    Mat mat_data_vector_sample(1, 1024, CV_32FC1, (float *)normalizedData_l2.data());
+    
+    Mat mat_data_vector_mean(1, 1024, CV_32FC1, (float *)data_vector_mean.data());
+    Mat mat_data_vector(1024, 1024, CV_32FC1, (float *)data_vector.data());
+    
+    double Maha = Mahalanobis(mat_data_vector_sample, mat_data_vector_mean, mat_data_vector);
+	cout << "Maha distance:\t" << Maha << endl;
+
+    int cls = 0;
+    if (Maha < data_threshold)
+    {
+        cls = 1;
+    }
+    return cls;
+    // end of addition 2111201500
+
+    // hided by Holy 2111201500
+    /*
     std::vector<std::pair<float, int> > vec;
     vec.resize(size);
     for (int i = 0; i < size; i++)
@@ -87,7 +110,8 @@ static int print_topk(const std::vector<float>& cls_scores, int topk)
         fprintf(stderr, "%d = %f\n", index, score);
     }
     int top1_index=vec[0].second;
-    return top1_index;
+    return top1_index;*/
+    // end of hide 2111201500
 }
 
 
@@ -98,6 +122,102 @@ int main(int argc, char** argv)
 
     string path = argv[1];//输入图片文件夹地址
     string inputPath=argv[2];//输入模型地址文件名
+
+    // added by Holy 2111201500
+    // read inv_cov
+    string txtPath = "d:/backup/project/learn_pytorch/test_cutpaste/data_inv_cov.txt";
+
+    ifstream in_file;
+    in_file.open(txtPath);
+
+    vector<float> data_vector;
+
+    if (in_file)
+    {
+        string line;
+        float number;
+
+        for (int i = 0; i < 1; ++i)
+        {
+            getline(in_file, line);
+            istringstream iss(line);
+            while (iss >> number)
+            {
+                data_vector.push_back(number);
+            }
+        }
+        in_file.close();
+        in_file.clear();
+    }
+    else
+    {
+        throw runtime_error("document error");
+    }
+
+    cout << "data_vector.size: " << data_vector.size() << endl;
+    
+    // read mean
+    txtPath = "d:/backup/project/learn_pytorch/test_cutpaste/data_mean.txt";
+
+    ifstream in_file_mean;
+    in_file_mean.open(txtPath);
+
+    vector<float> data_vector_mean;
+
+    if (in_file_mean)
+    {
+        string line_mean;
+        float number_mean;
+
+        for (int i = 0; i < 1; ++i)
+        {
+            getline(in_file_mean, line_mean);
+            istringstream iss(line_mean);
+            while (iss >> number_mean)
+            {
+                data_vector_mean.push_back(number_mean);
+            }
+        }
+        in_file_mean.close();
+        in_file_mean.clear();
+    }
+    else
+    {
+        throw runtime_error("document error");
+    }
+
+    cout << "data_vector_mean.size: " << data_vector_mean.size() << endl;
+    cout << "data_vector_mean[0]: " << data_vector_mean[0] << endl;
+    cout << "data_vector_mean[100]: " << data_vector_mean[100] << endl;
+
+    // read best threshold
+    txtPath = "d:/backup/project/learn_pytorch/test_cutpaste/data_threshold.txt";
+
+    ifstream in_file_threshold;
+    in_file_threshold.open(txtPath);
+
+    float data_threshold;
+
+    if (in_file_threshold)
+    {
+        string line_threshold;        
+
+        for (int i = 0; i < 1; ++i)
+        {
+            getline(in_file_threshold, line_threshold);
+            istringstream iss(line_threshold);
+            iss >> data_threshold;            
+        }
+        in_file_threshold.close();
+        in_file_threshold.clear();
+    }
+    else
+    {
+        throw runtime_error("document error");
+    }
+
+    cout << "best threshold: " << data_threshold << endl;
+    // end of addition 2111201500
 
     // added by Holy 2108061500
     string strDatasetPrefix = path;
@@ -164,7 +284,7 @@ int main(int argc, char** argv)
         std::vector<float> cls_scores;
         classify_wuSNet(m, cls_scores,paramPath,binPath);
 
-        result=print_topk(cls_scores, 2);
+        result=print_topk(cls_scores, data_vector, data_vector_mean, data_threshold);
 
         // added by Holy 2108061500
         vecBMess.push_back(bool(1-result));

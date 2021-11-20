@@ -61,9 +61,17 @@ if __name__ == "__main__":
     f = open(path, "w+")
     f.write(s)
 
+    # write best threshold
+    s = ''
+    data_threshold = np.load("d:/backup/project/learn_pytorch/test_cutpaste/best_threshold.npy")
+    path = "d:/backup/project/learn_pytorch/test_cutpaste/data_threshold.txt"
+    f = open(path, "w+")
+    f.write(str(data_threshold))
+
     sample = 10.*np.ones((1,1024))
     # sample = sample.astype(np.double)
     sample[0][6] = 7.
+    sample[0][7] = 6.
     print('sample[0][6]: ', sample[0][6])
     print('sample[0][16]: ', sample[0][16])
 
