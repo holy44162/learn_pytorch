@@ -364,10 +364,10 @@ if __name__ == "__main__":
         density.inv_cov = torch.load(inv_cov_pathname)
 
         # tested by Holy 2111181500
-        # mean_np = density.mean.numpy()
-        # inv_cov_np = density.inv_cov.numpy()
-        # np.save('d:/backup/project/learn_pytorch/test_cutpaste/mean.npy', mean_np)
-        # np.save('d:/backup/project/learn_pytorch/test_cutpaste/inv_cov.npy', inv_cov_np)
+        mean_np = density.mean.numpy()
+        inv_cov_np = density.inv_cov.numpy()
+        np.save('d:/backup/project/learn_pytorch/test_cutpaste/mean.npy', mean_np)
+        np.save('d:/backup/project/learn_pytorch/test_cutpaste/inv_cov.npy', inv_cov_np)
         # end of test 2111181500
     else:
         # get embeddings for test data
@@ -411,7 +411,7 @@ if __name__ == "__main__":
         np.save(best_F1_Score_pathname, best_F1_Score)
     # end of addition 2111170810
 
-    tag_compute_f1 = False # added by Holy 2111180810
+    tag_compute_f1 = True # added by Holy 2111180810
     if tag_compute_f1: # added by Holy 2111180810
         dF1, tp, fp, fn1, prec, rec, acc, total_frames_num = compute_f1(model_full, test_path, img_size, best_threshold, density)
     else: # added by Holy 2111180810
@@ -429,7 +429,8 @@ if __name__ == "__main__":
     # model_ft.fc = nn.Linear(num_ftrs, 1)
 
     # added by Holy 2111170810
-    num_classes = 3
+    # num_classes = 3
+    num_classes = 4 # added by Holy 2112011315
     head_layer = 2
     head_layers = [512]*head_layer+[128]
     model_ft = ProjectionNet_winding(pretrained=False, head_layers=head_layers, num_classes=num_classes)

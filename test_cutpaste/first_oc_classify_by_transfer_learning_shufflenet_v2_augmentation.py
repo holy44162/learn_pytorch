@@ -381,6 +381,72 @@ class normal_data(Dataset):
         return img        
 # end of addition 2111161500
 
+# added by Holy 2112011315
+class normal_data_with_mess(Dataset):
+    """normal dataset."""
+
+    def __init__(self, root_dir, transform=None, mode="train"):
+        """
+        Args:
+            root_dir (string): Directory with the dataset.
+            transform: Transform to apply to data
+            mode: "train" loads training samples "test" test samples default "train"
+        """
+        self.root_dir = Path(root_dir)
+        self.transform = transform
+        self.mode = mode
+        
+        # find test images
+        if self.mode == "train":
+            # self.image_names = list((self.root_dir / defect_name / "train" / "good").glob("*.png"))
+            self.image_names = list((self.root_dir / "train" / "normal").glob("*.*")) # added by Holy 2111020810
+            self.image_names_mess = list((self.root_dir / "train" / "mess").glob("*.*")) # added by Holy 2112011315
+            self.mess_length = len(self.image_names_mess) # added by Holy 2112011315
+            # print("loading images")
+            # during training we cache the smaller images for performance reasons (not a good coding style)
+            #self.imgs = [Image.open(file).resize((size,size)).convert("RGB") for file in self.image_names]
+            # self.imgs = Parallel(n_jobs=10)(delayed(lambda file: Image.open(file).resize((size,size)).convert("RGB"))(file) for file in self.image_names)
+            # self.imgs = Parallel(n_jobs=10)(delayed(read_and_resize)(file,size) for file in self.image_names) # added by Holy 2111120810
+            # print(f"loaded {len(self.imgs)} images")
+        else:
+            #test mode
+            # self.image_names = list((self.root_dir / defect_name / "test").glob(str(Path("*") / "*.png")))
+            # self.image_names = list((self.root_dir / "val").glob(str(Path("*") / "*.*"))) # tested by Holy 2111020810
+            self.image_names = list((self.root_dir / "val" / "normal").glob("*.*"))
+            self.image_names_mess = list((self.root_dir / "val" / "mess").glob("*.*")) # added by Holy 2112011315
+            self.mess_length = len(self.image_names_mess) # added by Holy 2112011315
+            
+    def __len__(self):
+        return len(self.image_names)
+
+    def __getitem__(self, idx):        
+        filename = self.image_names[idx]
+        img = cv2.imread(filename.__str__())
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+
+        # added by Holy 2112011315
+        filename_mess = self.image_names_mess[idx % self.mess_length]
+        img_mess = cv2.imread(filename_mess.__str__())
+        img_mess = cv2.cvtColor(img_mess, cv2.COLOR_BGR2RGB)
+        # end of addition 2112011315
+
+        if self.transform is not None:
+            # img = self.transform(img)
+            # added by Holy 2111090810
+            # img = numpy.array(img)
+            img = self.transform[0](image=img)['image']
+            # img = Image.fromarray(img)
+            img = self.transform[1](img)
+            # end of addition 2111090810
+
+            # added by Holy 2112011315
+            img_mess = self.transform[0](image=img_mess)['image']
+            img_mess = self.transform[2](image=img_mess)['image']
+            # end of addition 2112011315
+        img = (*img, img_mess) # added by Holy 2112011315
+        return img
+# end of addition 2112011315
+
 # added by Holy 2111111500
 class ProjectionNet_winding(nn.Module):
     def __init__(self, pretrained=True, head_layers=[512,512,512,512,512,512,512,512,128], num_classes=2):
@@ -489,7 +555,12 @@ def train_model(model, criterion, optimizer, scheduler, start_epochs, n_epochs, 
     best_acc = 0.0
 
     break_num = 0 
-    break_num_threshold = 1 
+    break_num_threshold = 20 
+
+    # added by Holy 2111301030
+    for param_group in optimizer.param_groups:
+        print('first learning rate: ', param_group['lr'])        
+    # end of addition 2111301030
 
     # for epoch in range(num_epochs):
     for epoch in range(start_epochs, n_epochs+1):
@@ -539,7 +610,8 @@ def train_model(model, criterion, optimizer, scheduler, start_epochs, n_epochs, 
                     # added by Holy 2111161500
                     labels = torch.arange(len(inputs), device=device)
                     labels = labels.repeat_interleave(inputs[0].size(0))
-                    inputs = torch.cat((inputs[0],inputs[1],inputs[2])).to(device)
+                    # inputs = torch.cat((inputs[0],inputs[1],inputs[2])).to(device)
+                    inputs = torch.cat((inputs[0],inputs[1],inputs[2],inputs[3])).to(device) # added by Holy 2112011315
                     # end of addition 2111161500
 
                     # hided by Holy 2111151500
@@ -577,6 +649,7 @@ def train_model(model, criterion, optimizer, scheduler, start_epochs, n_epochs, 
                     
                 if phase == 'train':
                     scheduler.step()
+                    print('current learning rate: ', scheduler.get_last_lr()) # added by Holy 2111301030
 
                 epoch_loss = running_loss / dataset_sizes[phase]
                 epoch_acc = running_corrects.double() / dataset_sizes[phase]
@@ -682,8 +755,8 @@ class NormalVsMessFolder(DatasetFolder):
 
 if __name__ == "__main__":
     INIT_LR = 1e-3
-    BATCH_SIZE = 2**7    
-    EPOCHS = 3
+    BATCH_SIZE = 2**5
+    EPOCHS = 100
     STEP_SIZE = 7
     GAMMA = 0.1
     
@@ -691,7 +764,8 @@ if __name__ == "__main__":
     after_cutpaste_transform_A = A.Compose([A.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
                                             ToTensorV2()])
     train_transform_B2 = CutPaste3Way(transform = after_cutpaste_transform_A)
-    num_classes = 3
+    # num_classes = 3
+    num_classes = 4 # added by Holy 2112011315
     # end of addition 2111121500
 
     data_transforms = {
@@ -727,7 +801,7 @@ if __name__ == "__main__":
                 A.CoarseDropout(),
                 A.Flip(),
                 A.Perspective(),
-                A.RandomGridShuffle(),
+                # A.RandomGridShuffle(), # hided by Holy 2112011315
                 A.ShiftScaleRotate(),
                 A.VerticalFlip(),
             ], p=1)
@@ -764,14 +838,16 @@ if __name__ == "__main__":
                 A.CoarseDropout(),
                 A.Flip(),
                 A.Perspective(),
-                A.RandomGridShuffle(),
+                # A.RandomGridShuffle(), # hided by Holy 2112011315
                 A.ShiftScaleRotate(),
                 A.VerticalFlip(),
             ], p=1)
         ])
     }
     
-    data_dir = 'e:/dnn_data/ZTC950V763_data'
+    # data_dir = 'e:/dnn_data/ZTC950V763_data'
+    # data_dir = 'd:/data_seq/dnn_data/ZTC950V763_data'
+    data_dir = 'd:/data_seq/dnn_data/w6013_data'
     
     # image_datasets = {x: NormalVsMessFolder(os.path.join(data_dir, x),
     #                                           data_transforms[x])
@@ -792,9 +868,14 @@ if __name__ == "__main__":
     #     'val': test_data}
     
     # added by Holy 2111161500
-    image_datasets = {x: normal_data(data_dir, transform = [data_transforms[x], train_transform_B2], mode=x)
-                      for x in ['train', 'val']}
+    # image_datasets = {x: normal_data(data_dir, transform = [data_transforms[x], train_transform_B2], mode=x)
+    #                   for x in ['train', 'val']}
     # end of addition 2111161500
+
+    # added by Holy 2112011315
+    image_datasets = {x: normal_data_with_mess(data_dir, transform = [data_transforms[x], train_transform_B2, after_cutpaste_transform_A], mode=x)
+                      for x in ['train', 'val']}
+    # end of addition 2112011315
 
     dataloaders = {x: torch.utils.data.DataLoader(image_datasets[x], batch_size=BATCH_SIZE,
                                                   shuffle=True, num_workers=4)
@@ -814,6 +895,8 @@ if __name__ == "__main__":
     # end of addition 2111121500
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
+    print('using device: ', device) # added by Holy 2111291030
     
     # hided by Holy 2111130954
     # pytorch_vision_version = 'pytorch/vision:v0.10.0'
@@ -856,7 +939,7 @@ if __name__ == "__main__":
         os.mkdir(os.path.dirname(best_model_path))
     # end of addition 2111161500
 
-    resume_training = True
+    resume_training = False
     if resume_training:        
         # model_ft = torch.hub.load(pytorch_vision_version, shufflenet_version, pretrained=False)
         
@@ -875,11 +958,11 @@ if __name__ == "__main__":
 
         # Observe that all parameters are being optimized
         # optimizer_ft = optim.SGD(model_ft.parameters(), lr=0.001, momentum=0.9)
-        optimizer_ft = optim.Adam(model_ft.parameters(), lr=INIT_LR) 
+        # optimizer_ft = optim.Adam(model_ft.parameters(), lr=INIT_LR) 
 
-        # Decay LR by a factor of 0.1 every 7 epochs
-        exp_lr_scheduler = lr_scheduler.StepLR(
-            optimizer_ft, step_size=STEP_SIZE, gamma=GAMMA)
+        # # Decay LR by a factor of 0.1 every 7 epochs
+        # exp_lr_scheduler = lr_scheduler.StepLR(
+        #     optimizer_ft, step_size=STEP_SIZE, gamma=GAMMA)
 
         ckp_path = os.path.dirname(checkpoint_path)
         file_type = '\*pt'
@@ -895,6 +978,14 @@ if __name__ == "__main__":
         print("valid_loss_min = ", valid_loss_min)
         print("valid_loss_min = {:.6f}".format(valid_loss_min))
         print(checkpoint_path_latest)
+
+        # added by Holy 2110280810
+        optimizer_ft = optim.Adam(model_ft.parameters(), lr=INIT_LR) 
+
+        # Decay LR by a factor of 0.1 every 7 epochs
+        exp_lr_scheduler = lr_scheduler.StepLR(
+            optimizer_ft, step_size=STEP_SIZE, gamma=GAMMA)
+        # end of addition 2110280810
 
         # valid_loss_min = np.Inf # added by Holy 2110070936
 

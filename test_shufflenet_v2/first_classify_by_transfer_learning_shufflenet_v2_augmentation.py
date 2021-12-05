@@ -335,9 +335,9 @@ if __name__ == "__main__":
     INIT_LR = 1e-3
     # BATCH_SIZE = 2**9 # 1m 37s 0.549111 6m 51s
     # BATCH_SIZE = 2**8 # 1m 9s 0.512161 6m 43s
-    BATCH_SIZE = 2**7 # 1m 6s 0.507951 6m 29s
+    # BATCH_SIZE = 2**7 # 1m 6s 0.507951 6m 29s
     # BATCH_SIZE = 2**6 # 1m 5s 0.699252 Best val Acc: 0.867166 6m 14s
-    # BATCH_SIZE = 2**5 # 1m 5s 0.667446 6m 14s
+    BATCH_SIZE = 2**5 # 1m 5s 0.667446 6m 14s
     # BATCH_SIZE = 2**4 # 1m 8s 0.744153 7m 41s
     # BATCH_SIZE = 2**3 # 1m 34s 0.783910 11m 5s
     # BATCH_SIZE = 2**2 # 2m 19s 0.967727
@@ -472,7 +472,8 @@ if __name__ == "__main__":
 
     # data_dir = 'data/hymenoptera_data'
     # data_dir = 'data/z75_data' # added by Holy 2108171500
-    data_dir = 'e:/dnn_data/z75_data' # added by Holy 2108171500
+    # data_dir = 'e:/dnn_data/z75_data' # added by Holy 2108171500
+    data_dir = 'd:/data_seq/dnn_data/ZTC950V763_data' # added by Holy 2111251226
     # image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir, x),
     #                                           data_transforms[x])
     #                   for x in ['train', 'val']}
@@ -542,6 +543,14 @@ if __name__ == "__main__":
     end_epochs = start_epochs + EPOCHS
     checkpoint_path = './checkpoint/current_checkpoint.pt'
     best_model_path = './best_model/best_model.pt'
+
+    # added by Holy 2111251226
+    if not os.path.exists(os.path.dirname(checkpoint_path)):
+        os.mkdir(os.path.dirname(checkpoint_path))
+    if not os.path.exists(os.path.dirname(best_model_path)):
+        os.mkdir(os.path.dirname(best_model_path))
+    # end of addition 2111251226
+
     resume_training = False
     if resume_training:
         # added by Holy 2109060810
