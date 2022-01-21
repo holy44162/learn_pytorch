@@ -1,1 +1,1 @@
-./eighth_onnx_ncnn_oc.exe d:/data_seq/gongqiWinding/ZTC950V763/211021/shrinkVideo/bigDatasets/testValidateCV/ ./model_ft_shufflenet_v2_ckp_0.90_simplified
+./eighth_onnx_ncnn_oc.exe d:/data_seq/gongqiWinding/ZTC950V763/211021/shrinkVideo/bigDatasets/testValidateCV/ ./model_ft_shufflenet_v2_ckp_0.89_simplified
