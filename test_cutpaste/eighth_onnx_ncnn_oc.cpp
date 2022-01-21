@@ -15,8 +15,43 @@
 
 #include <opencv2/opencv.hpp>
 
+// added by Holy 2201201549
+#include <ctime>
+#include "mman.h"
+#include <sys/stat.h>
+#include <fcntl.h>
+// end of addition 2201201549
+
 using namespace std;
 using namespace cv;
+
+// added by Holy 2201201549
+void handle_error(const char* msg) {
+    perror(msg); 
+    exit(255);
+}
+
+const char* map_file(const char* fname, size_t& length)
+{
+    int fd = open(fname, O_RDONLY);
+    if (fd == -1)
+        handle_error("open");
+
+    // obtain file size
+    struct stat sb;
+    if (fstat(fd, &sb) == -1)
+        handle_error("fstat");
+
+    length = sb.st_size;
+
+    const char* addr = static_cast<const char*>(mmap(NULL, length, PROT_READ, MAP_PRIVATE, fd, 0u));
+    if (addr == MAP_FAILED)
+        handle_error("mmap");
+
+    // TODO close fd at some point in time, call munmap(...)
+    return addr;
+}
+// end of addition 2201201549
 
 int classify_wuSNet(const cv::Mat& bgr, std::vector<float>& cls_scores , string paramPath,string binPath)
 {
@@ -122,7 +157,9 @@ int main(int argc, char** argv)
 
     string path = argv[1];//输入图片文件夹地址
     string inputPath=argv[2];//输入模型地址文件名
-
+    
+    clock_t clock_t_clock_time = clock(); // added by Holy 2201201549
+    
     // added by Holy 2111201500
     // read inv_cov
     string txtPath = "d:/backup/project/learn_pytorch/test_cutpaste/data_inv_cov.txt";
@@ -155,6 +192,32 @@ int main(int argc, char** argv)
     }
 
     cout << "data_vector.size: " << data_vector.size() << endl;
+
+    // added by Holy 2201201549
+    clock_t_clock_time = clock() - clock_t_clock_time;
+    printf("read inv_cov: %f seconds\n", (static_cast<float>(clock_t_clock_time)) / CLOCKS_PER_SEC);
+
+    size_t length;
+    auto f = map_file(txtPath.c_str(), length);
+    // auto f = map_file("d:/temp/install_v1.3_211027/bin/param_w6013.ini", length);
+    auto l = f + length;
+
+    std::cout << "f = " << f << "\n";
+
+    uintmax_t m_numLines = 0;
+    while (f && f != l)
+    {
+        if ((f = static_cast<const char *>(memchr(f, '\n', l - f))))
+        {
+            m_numLines++, f++;            
+        }
+    }
+
+    std::cout << "m_numLines = " << m_numLines << "\n";
+    std::cout << "file length = " << length << "\n";
+
+    return 0;
+    // end of addition 2201201549
     
     // read mean
     txtPath = "d:/backup/project/learn_pytorch/test_cutpaste/data_mean.txt";
