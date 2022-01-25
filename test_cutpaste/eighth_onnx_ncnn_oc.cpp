@@ -149,6 +149,35 @@ static int print_topk(const std::vector<float>& cls_scores, vector<float> data_v
     // end of hide 2111201500
 }
 
+vector<float> string_split(std::string s, const char delimiter)
+{
+    size_t start=0;
+    size_t end=s.find_first_of(delimiter);
+    
+    std::vector<float> output;
+
+    char c_array1[32] = {0};
+    std:string str_tmp;
+    
+    while (end <= std::string::npos)
+    {
+        if (end == std::string::npos)
+	    	break;
+        // c_array1 = s.substr(start, end-start);
+        str_tmp = s.substr(start, end-start);
+        // cout << "str_tmp: " << str_tmp.c_str() << std::endl;
+        strcpy(c_array1, str_tmp.c_str());
+	    output.emplace_back(static_cast<float>(atof(c_array1)));
+
+	    // if (end == std::string::npos)
+	    // 	break;
+
+    	start=end+1;
+    	end = s.find_first_of(delimiter, start);
+    }
+    
+    return output;
+}
 
 int main(int argc, char** argv)
 {
@@ -195,7 +224,7 @@ int main(int argc, char** argv)
 
     // added by Holy 2201201549
     clock_t_clock_time = clock() - clock_t_clock_time;
-    printf("read inv_cov: %f seconds\n", (static_cast<float>(clock_t_clock_time)) / CLOCKS_PER_SEC);
+    printf("read inv_cov 0: %f seconds\n", (static_cast<float>(clock_t_clock_time)) / CLOCKS_PER_SEC);
 
     clock_t_clock_time = clock();
     size_t length;
@@ -222,13 +251,48 @@ int main(int argc, char** argv)
         {
             m_numTabs++, f++;
             memcpy(c_array, f_current, f-f_current);
-            data_vector1.push_back(std::stof(c_array));
+            // std::istringstream iss(c_array);
+            // iss >> number1;
+            // data_vector1.push_back(number1);
+            // iss.clear();
+            // data_vector1.push_back(std::stof(c_array));
+            data_vector1.push_back(atof(c_array));
             f_current = f;
         }
     }
 
     clock_t_clock_time = clock() - clock_t_clock_time;
-    printf("read inv_cov: %f seconds\n", (static_cast<float>(clock_t_clock_time)) / CLOCKS_PER_SEC);
+    printf("read inv_cov 1: %f seconds\n", (static_cast<float>(clock_t_clock_time)) / CLOCKS_PER_SEC);
+
+    vector<float> data_vector2;
+    clock_t_clock_time = clock();
+    std::ifstream file(txtPath.c_str(), std::ifstream::in);
+    std::copy(std::istream_iterator<float>(file), std::istream_iterator<float>(), std::back_inserter(data_vector2));
+    clock_t_clock_time = clock() - clock_t_clock_time;
+    printf("read inv_cov 2: %f seconds\n", (static_cast<float>(clock_t_clock_time)) / CLOCKS_PER_SEC);
+
+    vector<float> data_vector3;
+    clock_t_clock_time = clock();
+    ifstream in_file1;
+    in_file1.open(txtPath);
+
+    if (in_file1)
+    {
+        string line;
+        float number;
+
+        getline(in_file1, line);
+        cout << "line length: " << line.length() << endl;
+        data_vector3 = string_split(line, '\t');
+        in_file1.close();
+        in_file1.clear();
+    }
+    else
+    {
+        throw runtime_error("document error");
+    }
+    clock_t_clock_time = clock() - clock_t_clock_time;
+    printf("read inv_cov 3: %f seconds\n", (static_cast<float>(clock_t_clock_time)) / CLOCKS_PER_SEC);
 
     std::cout << "m_numLines = " << m_numLines << "\n";
     std::cout << "file length = " << length << "\n";
@@ -237,10 +301,17 @@ int main(int argc, char** argv)
     std::cout << "data_vector1.size: " << data_vector1.size() << std::endl;
     std::cout << "data_vector[532]: " << data_vector[532] << std::endl;
     std::cout << "data_vector1[532]: " << data_vector1[532] << std::endl;
-    std::cout << "data_vector[1552]: " << data_vector[1552] << std::endl;
-    std::cout << "data_vector1[1552]: " << data_vector1[1552] << std::endl;
+    std::cout << "data_vector[1048575]: " << data_vector[1048575] << std::endl;
+    std::cout << "data_vector1[1048575]: " << data_vector1[1048575] << std::endl;
     std::cout << "data_vector[0]: " << data_vector[0] << std::endl;
     std::cout << "data_vector1[0]: " << data_vector1[0] << std::endl;
+    std::cout << "data_vector2.size: " << data_vector2.size() << std::endl;
+    std::cout << "data_vector2[1048575]: " << data_vector2[1048575] << std::endl;
+    std::cout << "data_vector2[0]: " << data_vector2[0] << std::endl;
+    std::cout << "data_vector3.size: " << data_vector3.size() << std::endl;
+    std::cout << "data_vector3[1048575]: " << data_vector3[1048575] << std::endl;
+    // std::cout << "data_vector3[1048576]: " << data_vector3[1048576] << std::endl;
+    std::cout << "data_vector3[0]: " << data_vector3[0] << std::endl;
 
     return 0;
     // end of addition 2201201549
