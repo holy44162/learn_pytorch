@@ -159,8 +159,7 @@ if __name__ == "__main__":
     plt.show()
 
     data_transforms = {
-        'train': A.Compose([
-            A.Resize(224, 224),
+        'train': A.Compose([            
             A.OneOf([
                 A.HorizontalFlip(),
                 A.Blur(),
@@ -195,11 +194,11 @@ if __name__ == "__main__":
                 A.ShiftScaleRotate(),
                 A.VerticalFlip(),
                 ], p=1),
+            A.Resize(224, 224)
             # A.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
             # ToTensorV2(),
         ]),
-        'val': A.Compose([
-            A.Resize(224, 224),
+        'val': A.Compose([            
             A.OneOf([            
                 A.HorizontalFlip(),
                 A.Blur(),
@@ -234,6 +233,7 @@ if __name__ == "__main__":
                 A.ShiftScaleRotate(),
                 A.VerticalFlip(),
                 ], p=1),
+            A.Resize(224, 224)
             # A.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
             # ToTensorV2(),        
         ])
